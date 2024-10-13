@@ -1,6 +1,6 @@
 # E-social by Naveen Soni
 
-# Social Network
+## Social Network Webapp
 
 Welcome to my E-Social project!
 
