@@ -1,6 +1,6 @@
 # E-social
 
-# Social Network API
+# Social Network
 
 Welcome to my E-Social project!
 
