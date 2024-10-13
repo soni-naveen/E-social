@@ -41,7 +41,7 @@ export default function Navbar({ username }) {
     addPost(postContent);
     setIsModalOpen(false);
     setTimeout(()=>{
-      navigate("/home");
+      window.location.reload();
     },1000);
   };
 
