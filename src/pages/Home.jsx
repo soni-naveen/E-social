@@ -370,14 +370,14 @@ export default function Home() {
                       >
                         <div className="flex items-start">
                           <div>
-                            <h3 className="font-semibold mb-1">
+                            <h3 className="font-semibold mb-1 text-sm sm:text-base">
                               {request?.sender?.username}
                             </h3>
                           </div>
                         </div>
                         <div className="space-x-2 flex">
                           <button
-                            className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-indigo-700"
+                            className="px-3 py-1 bg-blue-600 text-white text-[12px] sm:text-sm rounded-md hover:bg-indigo-700"
                             onClick={() =>
                               handleFriendRequest(request?._id, "accepted")
                             }
@@ -385,7 +385,7 @@ export default function Home() {
                             Accept
                           </button>
                           <button
-                            className="px-3 py-1 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
+                            className="px-3 py-1 bg-gray-200 text-gray-800 text-[12px] sm:text-sm rounded-md hover:bg-gray-300"
                             onClick={() =>
                               handleFriendRequest(request?._id, "rejected")
                             }
@@ -405,7 +405,7 @@ export default function Home() {
                     {user?.user?.friends?.map((friend) => (
                       <div key={friend._id} className="flex items-center">
                         <div className="w-2 h-2 bg-teal-500 rounded-full mr-2 flex items-center justify-center "></div>
-                        <span>{friend?.username}</span>
+                        <span className="text-sm sm:text-base">{friend?.username}</span>
                       </div>
                     ))}
                   </div>
