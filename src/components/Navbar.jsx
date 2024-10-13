@@ -40,7 +40,9 @@ export default function Navbar({ username }) {
     e.preventDefault();
     addPost(postContent);
     setIsModalOpen(false);
-    window.location.reload();
+    setTimeout(()=>{
+      navigate("/home");
+    },1000);
   };
 
   return (
