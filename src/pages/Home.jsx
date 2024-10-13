@@ -325,7 +325,7 @@ export default function Home() {
                         key={user?._id}
                         className="flex justify-between items-center"
                       >
-                        <span className="font-bold">{user?.username}</span>
+                        <span className="font-bold text-sm sm:text-base">{user?.username}</span>
                         <button
                           className="px-3 py-1 bg-teal-500 text-white text-[12px] sm:text-sm rounded-full hover:bg-teal-600"
                           onClick={() => addFriend(user?._id)}
@@ -370,7 +370,7 @@ export default function Home() {
                       >
                         <div className="flex items-start">
                           <div>
-                            <h3 className="font-semibold mb-1 text-sm sm:text-base">
+                            <h3 className="font-semibold mb-1 text-[12px] sm:text-sm">
                               {request?.sender?.username}
                             </h3>
                           </div>
