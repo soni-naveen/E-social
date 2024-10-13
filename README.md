@@ -26,7 +26,6 @@ Welcome to my E-Social project!
 
 ### Bonus Features
 - **Like Functionality**: Ability to like posts.
-- **Frontend Integration**: A React and Next.js frontend to interact with the API.
 
 ## Getting Started
 
