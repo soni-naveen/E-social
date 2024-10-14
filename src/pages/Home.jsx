@@ -288,7 +288,7 @@ export default function Home() {
                                   <strong>{comment?.author?.username}:</strong>{" "}
                                   {comment?.content}
                                 </p>
-                                <small className="text-gray-500 text-[12px] sm:text-sm">
+                                <small className="text-gray-500 text-[10px] sm:text-sm">
                                   <Date createdAt={comment?.createdAt} />
                                 </small>
                               </div>
@@ -303,7 +303,7 @@ export default function Home() {
                                 }
                               />
                               <button
-                                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded text-[12px] sm:text-sm hover:bg-blue-600"
+                                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded text-[13px] sm:text-sm hover:bg-blue-600"
                                 onClick={() => addComment(post?._id)}
                               >
                                 Post Comment
@@ -316,7 +316,7 @@ export default function Home() {
                   </>
                 )}
                 <div className="w-10/12 md:w-3/5 lg:w-1/2 mt-5 bg-slate-50 rounded-lg shadow p-6 mb-6">
-                  <h2 className="text-sm sm:text-base font-semibold mb-4 text-gray-600">
+                  <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Add New Friends
                   </h2>
                   <div className="space-y-4">
@@ -341,7 +341,7 @@ export default function Home() {
               {/* Sidebar */}
               <div className="min-[280px]:w-11/12 min-[450px]:w-2/3 md:w-1/2 mt-2 md:mt-10">
                 <div className="bg-teal-50 rounded-lg shadow p-6 mb-6">
-                  <h2 className="font-semibold mb-4 text-teal-500 text-sm sm:text-base">
+                  <h2 className="font-semibold mb-4 text-teal-500 text-lg">
                     Your Profile
                   </h2>
                   <div className="flex items-center mb-4 text-sm sm:text-base">
@@ -359,7 +359,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="bg-slate-50 rounded-lg shadow p-6 mb-6">
-                  <h2 className="text-sm sm:text-base font-semibold mb-4 text-gray-600">
+                  <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Friend Requests
                   </h2>
                   <div className="space-y-4">
@@ -398,7 +398,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="bg-slate-50 rounded-lg shadow p-6">
-                  <h2 className="text-sm sm:text-base font-semibold mb-4 text-gray-600">
+                  <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Your Friends
                   </h2>
                   <div className="space-y-2">
