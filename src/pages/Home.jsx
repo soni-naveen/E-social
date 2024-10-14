@@ -278,24 +278,24 @@ export default function Home() {
                         </div>
                         {expandedComments[post?._id] && (
                           <div className="mt-4">
-                            <h4 className="font-semibold mb-2">Comments</h4>
+                            <h4 className="font-semibold mb-2 text-sm sm:text-base">Comments</h4>
                             {post?.comments?.map((comment) => (
                               <div
                                 key={comment?._id}
                                 className="mb-2 p-2 bg-gray-100 rounded"
                               >
-                                <p className="text-sm">
+                                <p className="text-[14px] sm:text-sm">
                                   <strong>{comment?.author?.username}:</strong>{" "}
                                   {comment?.content}
                                 </p>
-                                <small className="text-gray-500">
+                                <small className="text-gray-500 text-[12px] sm:text-sm">
                                   <Date createdAt={comment?.createdAt} />
                                 </small>
                               </div>
                             ))}
                             <div className="mt-4">
                               <textarea
-                                className="w-full p-2 border rounded"
+                                className="w-full p-2 border text-[14px] sm:text-sm rounded"
                                 placeholder="Add a comment..."
                                 value={commentContent}
                                 onChange={(e) =>
@@ -303,7 +303,7 @@ export default function Home() {
                                 }
                               />
                               <button
-                                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                className="mt-2 px-4 py-2 bg-blue-500 text-white rounded text-[12px] sm:text-sm hover:bg-blue-600"
                                 onClick={() => addComment(post?._id)}
                               >
                                 Post Comment
