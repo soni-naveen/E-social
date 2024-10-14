@@ -76,6 +76,7 @@ export default function Signup() {
                     type="text"
                     required
                     value={formData.username}
+                    pattern="^[A-Za-z0-9_-]{3,10}$"
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 focus:z-10 sm:text-sm"
                     placeholder="Username"
