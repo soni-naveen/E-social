@@ -83,10 +83,10 @@ exports.getFeed = async (req, res) => {
 };
 // Like Post
 exports.likePost = async (req, res) => {
-  try {
-    const { postId } = req.params;
-    const userId = req.user.id;
+  const { postId } = req.params;
+  const userId = req.user.id;
 
+  try {
     const post = await Post.findById(postId);
     if (!post) {
       return res.status(404).json({
@@ -95,28 +95,24 @@ exports.likePost = async (req, res) => {
       });
     }
 
-    const likeIndex = post.likes.indexOf(userId);
-    if (likeIndex > -1) {
-      // User has already liked the post, so unlike it
-      post.likes.splice(likeIndex, 1);
-      await post.save();
-      res.json({
-        success: true,
-        message: "Post unliked successfully",
-      });
+    const userHasLiked = post.likes.includes(userId);
+    const message = userHasLiked ? "Post unliked" : "Post liked";
+
+    if (userHasLiked) {
+      post.likes.pull(userId);
     } else {
-      // User hasn't liked the post, so like it
       post.likes.push(userId);
-      await post.save();
-      res.json({
-        success: true,
-        message: "Post liked successfully",
-      });
     }
+    await post.save();
+
+    return res.json({
+      success: true,
+      message,
+    });
   } catch (error) {
     console.error("Error in like/unlike post:", error);
-    res.status(500).json({
-      success: true,
+    return res.status(500).json({
+      success: false,
       message: "Error processing like/unlike",
       details: error.message,
     });

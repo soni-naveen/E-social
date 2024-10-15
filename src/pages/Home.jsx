@@ -46,7 +46,7 @@ export default function Home() {
         },
       });
       const userdetails = await response.json();
-      setUser(userdetails);
+      setUser(userdetails?.user);
       fetchPosts();
       fetchFriendRequests();
     } catch (error) {
@@ -206,14 +206,14 @@ export default function Home() {
     <>
       {token ? (
         <>
-          <Navbar username={user?.user?.username} />
+          <Navbar username={user?.username} />
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col md:flex-row sm:gap-7 lg:gap-10">
               {/* Feed */}
               <div className="min-[280px]:w-11/12 min-[450px]:w-3/4">
                 <h2 className="text-xl font-semibold mb-4">Your Feed</h2>
                 {posts?.length === 0 ? (
-                  <>No feed yet!</>
+                  <div className="text-gray-400">Add friends to see posts!</div>
                 ) : (
                   <>
                     {posts.map((post) => (
@@ -223,7 +223,7 @@ export default function Home() {
                       >
                         <div className="flex items-center mb-4">
                           <div>
-                            <h3 className="font-semibold">
+                            <h3 className="font-bold">
                               {post?.author?.username}
                             </h3>
                             <div className="text-gray-500 sm:text-sm text-[12px]">
@@ -236,13 +236,19 @@ export default function Home() {
                         </p>
                         <div className="flex items-center text-gray-500 text-sm">
                           <button
-                            className="flex items-center mr-6 hover:text-indigo-600"
+                            className="flex items-center mr-6 hover:text-red-600"
                             onClick={() => likePost(post?._id)}
                           >
                             <svg
                               className="w-5 h-5 mr-1"
-                              fill="none"
-                              stroke="currentColor"
+                              fill={
+                                post.likes.includes(user?._id) ? "red" : "none"
+                              }
+                              stroke={
+                                post.likes.includes(user?._id)
+                                  ? "red"
+                                  : "currentColor"
+                              }
                               viewBox="0 0 24 24"
                               xmlns="http://www.w3.org/2000/svg"
                             >
@@ -253,7 +259,13 @@ export default function Home() {
                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                               />
                             </svg>
-                            {post?.likes?.length} Likes
+                            <div
+                              className={`{
+                                ${post.likes.includes(user?._id) ? "font-semibold text-red-500" : "font-normal"}
+                              }`}
+                            >
+                              {post?.likes?.length} Likes
+                            </div>
                           </button>
                           <button
                             className="flex items-center hover:text-indigo-600"
@@ -278,7 +290,9 @@ export default function Home() {
                         </div>
                         {expandedComments[post?._id] && (
                           <div className="mt-4">
-                            <h4 className="font-semibold mb-2 text-sm sm:text-base">Comments</h4>
+                            <h4 className="font-semibold mb-2 text-sm sm:text-base">
+                              Comments
+                            </h4>
                             {post?.comments?.map((comment) => (
                               <div
                                 key={comment?._id}
@@ -315,6 +329,7 @@ export default function Home() {
                     ))}
                   </>
                 )}
+                {/* Add new friends  */}
                 <div className="w-10/12 md:w-3/5 lg:w-1/2 mt-5 bg-slate-50 rounded-lg shadow p-6 mb-6">
                   <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Add New Friends
@@ -325,7 +340,9 @@ export default function Home() {
                         key={user?._id}
                         className="flex justify-between items-center"
                       >
-                        <span className="font-bold text-sm sm:text-base">{user?.username}</span>
+                        <span className="font-bold text-sm sm:text-base">
+                          {user?.username}
+                        </span>
                         <button
                           className="px-3 py-1 bg-teal-500 text-white text-[12px] sm:text-sm rounded-full hover:bg-teal-600"
                           onClick={() => addFriend(user?._id)}
@@ -340,6 +357,7 @@ export default function Home() {
 
               {/* Sidebar */}
               <div className="min-[280px]:w-11/12 min-[450px]:w-2/3 md:w-1/2 mt-2 md:mt-10">
+                {/* Your Profile  */}
                 <div className="bg-teal-50 rounded-lg shadow p-6 mb-6">
                   <h2 className="font-semibold mb-4 text-teal-500 text-lg">
                     Your Profile
@@ -348,67 +366,81 @@ export default function Home() {
                     <div>
                       <h3 className="text-teal-700">
                         username :{" "}
-                        <span className="font-bold">
-                          {user?.user?.username}
-                        </span>
+                        <span className="font-bold">{user?.username}</span>
                       </h3>
                       <p className="text-gray-500 text-teal-700">
-                        mail : {user?.user?.email}
+                        mail : {user?.email}
                       </p>
                     </div>
                   </div>
                 </div>
+                {/* Friend Requests  */}
                 <div className="bg-slate-50 rounded-lg shadow p-6 mb-6">
                   <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Friend Requests
                   </h2>
-                  <div className="space-y-4">
-                    {friendRequests.map((request) => (
-                      <div
-                        key={request?._id}
-                        className="flex flex-col items-start justify-between"
-                      >
-                        <div className="flex items-start">
-                          <div>
-                            <h3 className="font-semibold mb-1 text-[12px] sm:text-sm">
-                              {request?.sender?.username}
-                            </h3>
+                  {friendRequests.length === 0 ? (
+                    <div className="text-[12px] sm:text-sm text-gray-400">
+                      No Requests
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {friendRequests.map((request) => (
+                        <div
+                          key={request?._id}
+                          className="flex flex-col items-start justify-between"
+                        >
+                          <div className="flex items-start">
+                            <div>
+                              <h3 className="font-semibold mb-1 text-[12px] sm:text-sm">
+                                {request?.sender?.username}
+                              </h3>
+                            </div>
+                          </div>
+                          <div className="space-x-2 flex">
+                            <button
+                              className="px-3 py-1 bg-blue-600 text-white text-[12px] sm:text-sm rounded-md hover:bg-indigo-700"
+                              onClick={() =>
+                                handleFriendRequest(request?._id, "accepted")
+                              }
+                            >
+                              Accept
+                            </button>
+                            <button
+                              className="px-3 py-1 bg-gray-200 text-gray-800 text-[12px] sm:text-sm rounded-md hover:bg-gray-300"
+                              onClick={() =>
+                                handleFriendRequest(request?._id, "rejected")
+                              }
+                            >
+                              Decline
+                            </button>
                           </div>
                         </div>
-                        <div className="space-x-2 flex">
-                          <button
-                            className="px-3 py-1 bg-blue-600 text-white text-[12px] sm:text-sm rounded-md hover:bg-indigo-700"
-                            onClick={() =>
-                              handleFriendRequest(request?._id, "accepted")
-                            }
-                          >
-                            Accept
-                          </button>
-                          <button
-                            className="px-3 py-1 bg-gray-200 text-gray-800 text-[12px] sm:text-sm rounded-md hover:bg-gray-300"
-                            onClick={() =>
-                              handleFriendRequest(request?._id, "rejected")
-                            }
-                          >
-                            Decline
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                {/* Your Friends  */}
                 <div className="bg-slate-50 rounded-lg shadow p-6">
                   <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Your Friends
                   </h2>
-                  <div className="space-y-2">
-                    {user?.user?.friends?.map((friend) => (
-                      <div key={friend._id} className="flex items-center">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full mr-2 flex items-center justify-center "></div>
-                        <span className="text-sm sm:text-base">{friend?.username}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {user?.friends?.length === 0 ? (
+                    <div className="text-[12px] sm:text-sm text-gray-400">
+                      No Friends
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {user?.friends?.map((friend) => (
+                        <div key={friend._id} className="flex items-center">
+                          <div className="w-2 h-2 bg-teal-500 rounded-full mr-2 flex items-center justify-center "></div>
+                          <span className="text-sm sm:text-base">
+                            {friend?.username}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

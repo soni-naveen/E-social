@@ -16,7 +16,10 @@ export default function Signup() {
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((prevData) => ({
+      ...prevData,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -75,8 +78,8 @@ export default function Signup() {
                     name="username"
                     type="text"
                     required
+                    pattern="^[a-z0-9_\-]{3,10}$"
                     value={formData.username}
-                    pattern="^[A-Za-z0-9_-]{3,10}$"
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 focus:z-10 sm:text-sm"
                     placeholder="Username"
