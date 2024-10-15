@@ -4,7 +4,7 @@ import { FaCircleUser } from "react-icons/fa6";
 import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 
-export default function Navbar({ username }) {
+export default function Navbar({ username, fetchPost }) {
   const ENDPOINT = import.meta.env.VITE_REACT_BASE_URL;
   const navigate = useNavigate();
   const [postContent, setPostContent] = useState("");
@@ -38,11 +38,13 @@ export default function Navbar({ username }) {
 
   const handlePostSubmit = (e) => {
     e.preventDefault();
+    if (postContent.trim() === "") {
+      alert("Please write something to post!");
+      return;
+    }
     addPost(postContent);
     setIsModalOpen(false);
-    setTimeout(()=>{
-      window.location.reload();
-    },1000);
+    fetchPost();
   };
 
   return (

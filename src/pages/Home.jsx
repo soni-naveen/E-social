@@ -206,7 +206,7 @@ export default function Home() {
     <>
       {token ? (
         <>
-          <Navbar username={user?.username} />
+          <Navbar username={user?.username} fetchPost={fetchPosts} />
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col md:flex-row sm:gap-7 lg:gap-10">
               {/* Feed */}
@@ -261,7 +261,11 @@ export default function Home() {
                             </svg>
                             <div
                               className={`{
-                                ${post.likes.includes(user?._id) ? "font-semibold text-red-500" : "font-normal"}
+                                ${
+                                  post.likes.includes(user?._id)
+                                    ? "font-semibold text-red-500"
+                                    : "font-normal"
+                                }
                               }`}
                             >
                               {post?.likes?.length} Likes
