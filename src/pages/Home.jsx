@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { convertCreatedAt } from "../utils/dateConverter";
+import { MdDelete } from "react-icons/md";
 
 const Date = ({ createdAt }) => {
   const formattedTime = convertCreatedAt(createdAt);
@@ -150,6 +151,36 @@ export default function Home() {
       console.error("Error adding comment:", error);
     }
   };
+  // Delete Post with Confirmation
+  const confirmDeletePost = (postId) => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this post?"
+    );
+    if (isConfirmed) {
+      deletePost(postId);
+    }
+  };
+  // Delete Post
+  const deletePost = async (postId) => {
+    try {
+      const response = await fetch(`${ENDPOINT}/post/${postId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        setPosts((prevPosts) =>
+          prevPosts.filter((post) => post._id !== postId)
+        );
+        // fetchPosts();
+      } else {
+        throw new Error("Failed to delete post");
+      }
+    } catch (error) {
+      console.error("Error deleting post:", error);
+    }
+  };
   // Fetch all users
   const fetchAllUsers = async () => {
     try {
@@ -291,6 +322,15 @@ export default function Home() {
                             </svg>
                             {post?.comments?.length} Comments
                           </button>
+                          {/* Only show delete button if the logged-in user is the post author */}
+                          {user?._id === post?.author?._id && (
+                            <button
+                              className="ml-auto text-sm text-red-600 hover:text-red-700 hover:bg-red-100 hover:rounded-full"
+                              onClick={() => confirmDeletePost(post?._id)}
+                            >
+                              <MdDelete className="text-3xl p-1" />
+                            </button>
+                          )}
                         </div>
                         {expandedComments[post?._id] && (
                           <div className="mt-4">
