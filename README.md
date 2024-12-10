@@ -48,5 +48,5 @@ Welcome to my E-Social project!
 - **Feed Post**: `GET /api/v1/post/feed`
 - **Add Comment**: `POST /api/v1/post/:postId/comments`
 - **Add Like**: `POST /api/v1/post/:postId/likes`
-- **Delete Post**: `POST /api/v1/post/:postId`
+- **Delete Post**: `DELETE /api/v1/post/:postId`
   
