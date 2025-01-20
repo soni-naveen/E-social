@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Loader from "../components/Loader";
 
 export default function Login() {
   const ENDPOINT = import.meta.env.VITE_REACT_BASE_URL;
@@ -58,7 +59,7 @@ export default function Login() {
     <>
       {loading ? (
         <div className="grid place-items-center items-center h-screen">
-          Loading...
+          <Loader />
         </div>
       ) : (
         <div className="min-h-screen flex items-center justify-center bg-slate-100 py-12 px-4 sm:px-6 lg:px-8">
