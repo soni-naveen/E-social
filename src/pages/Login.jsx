@@ -57,7 +57,7 @@ export default function Login() {
 
   return (
     <>
-      {!loading ? (
+      {loading ? (
         <div className="grid place-items-center items-center h-screen">
           <div className="flex flex-col items-center">
             <Loader />
