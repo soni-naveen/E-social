@@ -236,13 +236,13 @@ export default function Home() {
   return (
     <>
       {token ? (
-        <>
+        <div className="bg-slate-50">
           <Navbar username={user?.username} fetchPost={fetchPosts} />
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex flex-col md:flex-row sm:gap-7 lg:gap-10">
               {/* Feed */}
-              <div className="min-[280px]:w-11/12 min-[450px]:w-3/4">
-                <h2 className="text-xl font-semibold mb-4">Your Feed</h2>
+              <div className="w-11/12 sm:w-3/4 mx-auto">
+                <h2 className="text-xl font-semibold mb-4">Recent updates</h2>
                 {posts?.length === 0 ? (
                   <div className="text-gray-400">Add friends to see posts!</div>
                 ) : (
@@ -250,7 +250,7 @@ export default function Home() {
                     {posts.map((post) => (
                       <div
                         key={post?._id}
-                        className="bg-white rounded-lg shadow-md border mb-6 p-6"
+                        className="bg-white rounded-lg shadow border mb-6 p-6"
                       >
                         <div className="flex items-center mb-4">
                           <div>
@@ -374,7 +374,7 @@ export default function Home() {
                   </>
                 )}
                 {/* Add new friends  */}
-                <div className="w-10/12 md:w-3/5 lg:w-1/2 mt-5 bg-slate-50 rounded-lg shadow p-6 mb-6">
+                <div className="max-w-xl mt-5 bg-white rounded-lg shadow-md p-6 mb-6">
                   <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Add New Friends
                   </h2>
@@ -400,7 +400,7 @@ export default function Home() {
               </div>
 
               {/* Sidebar */}
-              <div className="min-[280px]:w-11/12 min-[450px]:w-2/3 md:w-1/2 mt-2 md:mt-10">
+              <div className="w-11/12 sm:w-3/4 md:w-1/2 mt-2 md:mt-10 mx-auto">
                 {/* Your Profile  */}
                 <div className="bg-teal-50 rounded-lg shadow p-6 mb-6">
                   <h2 className="font-semibold mb-4 text-teal-500 text-lg">
@@ -408,20 +408,24 @@ export default function Home() {
                   </h2>
                   <div className="flex items-center mb-4 text-sm sm:text-base">
                     <div>
-                      <h3 className="text-teal-700">
+                      <p className="text-teal-700">
                         username :{" "}
                         <span className="font-bold">{user?.username}</span>
-                      </h3>
+                      </p>
                       <p className="text-gray-500 text-teal-700">
-                        mail : {user?.email}
+                        email : {user?.email}
+                      </p>
+                      <p className="text-teal-700">
+                        friends :{" "}
+                        <span className="font-bold">{user?.friends.length}</span>
                       </p>
                     </div>
                   </div>
                 </div>
                 {/* Friend Requests  */}
-                <div className="bg-slate-50 rounded-lg shadow p-6 mb-6">
+                <div className="bg-white rounded-lg shadow p-6 mb-6">
                   <h2 className="text-lg font-semibold mb-4 text-gray-600">
-                    Friend Requests
+                    New Friend Requests
                   </h2>
                   {friendRequests.length === 0 ? (
                     <div className="text-[12px] sm:text-sm text-gray-400">
@@ -465,7 +469,7 @@ export default function Home() {
                   )}
                 </div>
                 {/* Your Friends  */}
-                <div className="bg-slate-50 rounded-lg shadow p-6">
+                <div className="bg-white rounded-lg shadow p-6">
                   <h2 className="text-lg font-semibold mb-4 text-gray-600">
                     Your Friends
                   </h2>
@@ -490,7 +494,7 @@ export default function Home() {
             </div>
           </main>
           <Footer />
-        </>
+        </div>
       ) : null}
     </>
   );

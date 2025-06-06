@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { IoMdAddCircleOutline } from "react-icons/io";
+import { useState } from "react";
+import { HiPencilSquare } from "react-icons/hi2";
 import { FaCircleUser } from "react-icons/fa6";
 import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
@@ -56,9 +56,10 @@ export default function Navbar({ username, fetchPost }) {
       <div className="flex items-center space-x-4">
         <button
           onClick={() => setIsModalOpen(true)}
-          className="p-2 rounded-full text-teal-600 hover:bg-teal-100"
+          className="py-1 px-3 rounded-full flex items-center gap-1 border border-teal-500 text-teal-500 hover:bg-teal-500 hover:text-white"
         >
-          <IoMdAddCircleOutline className="text-2xl" />
+          <HiPencilSquare className="text-lg" />
+          <span className="text-sm font-medium">Post</span>
         </button>
         <button className="flex items-center space-x-2 text-gray-500">
           <FaCircleUser className="text-2xl" />
