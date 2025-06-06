@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Loader from "../components/Loader";
 
@@ -44,7 +44,7 @@ export default function Login() {
         localStorage.setItem("token", data.token);
         setSuccessMessage("Login successful!");
         setFormData({ username: "", password: "" });
-        navigate("/home");
+        navigate("/");
       } else {
         setError(data.message);
       }
@@ -57,9 +57,12 @@ export default function Login() {
 
   return (
     <>
-      {loading ? (
+      {!loading ? (
         <div className="grid place-items-center items-center h-screen">
-          <Loader />
+          <div className="flex flex-col items-center">
+            <Loader />
+            <p className="text-gray-500 text-sm mt-2">Please wait...</p>
+          </div>
         </div>
       ) : (
         <div className="min-h-screen flex items-center justify-center bg-slate-100 py-12 px-4 sm:px-6 lg:px-8">
