@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Loader from "../components/Loader";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { convertCreatedAt } from "../utils/dateConverter";
 import { MdDelete } from "react-icons/md";
+import { FiMoreVertical } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Date = ({ createdAt }) => {
   const formattedTime = convertCreatedAt(createdAt);
@@ -238,6 +240,27 @@ export default function Home() {
     }));
   };
 
+  const [openMenuPostId, setOpenMenuPostId] = useState(false);
+
+  const toggleMenu = (post) => {
+    setOpenMenuPostId(openMenuPostId === post._id ? null : post._id);
+  };
+
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuPostId(null);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [menuRef]);
+
   return (
     <>
       {token ? (
@@ -267,14 +290,14 @@ export default function Home() {
                       {posts.map((post) => (
                         <div
                           key={post?._id}
-                          className="bg-white rounded-lg shadow border mb-6 p-6"
+                          className="bg-white rounded-lg shadow border mb-6 p-6 relative"
                         >
                           <div className="flex items-center mb-4">
                             <div>
                               <h3 className="font-semibold">
                                 {post?.author?.username}
                               </h3>
-                              <div className="text-gray-500 sm:mt-0.5 text-xs">
+                              <div className="text-gray-500 text-xs">
                                 <Date createdAt={post?.createdAt} />
                               </div>
                             </div>
@@ -282,6 +305,7 @@ export default function Home() {
                           <p className="mb-4 text-sm sm:text-base">
                             {post?.content}
                           </p>
+                          {/* Like, Comment and Delete post */}
                           <div className="flex items-center text-gray-500 text-sm">
                             <button
                               className="flex items-center mr-6 hover:text-red-600"
@@ -316,11 +340,12 @@ export default function Home() {
                                     : "font-normal"
                                 }
                               >
-                                {post?.likes?.length} Likes
+                                {post?.likes?.length}{" "}
+                                {post?.likes?.length === 1 ? "like" : "likes"}
                               </div>
                             </button>
                             <button
-                              className="flex items-center hover:text-indigo-600"
+                              className="flex items-center hover:text-teal-600"
                               onClick={() => toggleComments(post?._id)}
                             >
                               <svg
@@ -337,64 +362,95 @@ export default function Home() {
                                   d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
                                 />
                               </svg>
-                              {post?.comments?.length} Comments
+                              {post?.comments?.length}{" "}
+                              {post?.comments?.length === 1
+                                ? "comment"
+                                : "comments"}
                             </button>
-                            {/* Only show delete button if the logged-in user is the post author */}
+                          </div>
+                          {/* Only show delete button if the logged-in user is the post author */}
+                          <div className="absolute top-3 right-3" ref={menuRef}>
                             {user?._id === post?.author?._id && (
-                              <button
-                                className="ml-auto text-sm text-red-600 hover:text-red-700 hover:bg-red-100 hover:rounded-full"
-                                onClick={() => confirmDeletePost(post?._id)}
-                              >
-                                <MdDelete className="text-3xl p-1" />
-                              </button>
+                              <div className="relative">
+                                <button onClick={() => toggleMenu(post)}>
+                                  <FiMoreVertical size={20} />
+                                </button>
+
+                                {/* Dropdown menu */}
+                                {openMenuPostId === post._id && (
+                                  <div className="absolute top-3 right-2 mt-2 bg-white border rounded shadow-md z-10">
+                                    <button
+                                      onClick={() =>
+                                        confirmDeletePost(post._id)
+                                      }
+                                      className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 w-full text-sm"
+                                    >
+                                      <MdDelete className="mr-1 mt-0.5" />
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </div>
-                          {expandedComments[post?._id] && (
-                            <div className="mt-4">
-                              <h4 className="font-semibold mb-2 text-sm sm:text-base">
-                                Comments
-                              </h4>
-                              {post?.comments?.map((comment) => (
-                                <div
-                                  key={comment?._id}
-                                  className="mb-2 p-2 bg-gray-100 rounded"
-                                >
-                                  <p className="text-[14px] sm:text-sm">
-                                    <strong>
-                                      {comment?.author?.username}:
-                                    </strong>{" "}
-                                    {comment?.content}
-                                  </p>
-                                  <small className="text-gray-500 text-[10px] sm:text-sm">
-                                    <Date createdAt={comment?.createdAt} />
-                                  </small>
+                          <AnimatePresence>
+                            {expandedComments[post?._id] && (
+                              <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: "auto" }}
+                                exit={{ opacity: 0, height: 0 }}
+                                transition={{
+                                  duration: 0.3,
+                                  ease: "easeInOut",
+                                }}
+                                className="mt-4"
+                              >
+                                <h4 className="font-semibold text-xs sm:text-sm text-teal-600">
+                                  Comments
+                                </h4>
+                                {post?.comments?.map((comment) => (
+                                  <div
+                                    key={comment?._id}
+                                    className="my-2 p-2 bg-gray-100 rounded"
+                                  >
+                                    <p className="text-[14px] sm:text-sm">
+                                      <span className="font-medium">
+                                        {comment?.author?.username}:
+                                      </span>{" "}
+                                      {comment?.content}
+                                    </p>
+                                    <small className="text-gray-500 text-[10px]">
+                                      <Date createdAt={comment?.createdAt} />
+                                    </small>
+                                  </div>
+                                ))}
+                                <div className="mt-2 flex flex-col">
+                                  <textarea
+                                    className="w-full p-2 border text-[14px] sm:text-sm rounded resize-none outline-gray-300"
+                                    placeholder="Add a comment..."
+                                    rows={3}
+                                    value={commentContent}
+                                    onChange={(e) =>
+                                      setCommentContent(e.target.value)
+                                    }
+                                  />
+                                  <button
+                                    className="mt-2 px-4 py-2 bg-slate-200 text-black rounded text-xs hover:bg-slate-300 w-fit self-end"
+                                    onClick={() => addComment(post?._id)}
+                                  >
+                                    Post Comment
+                                  </button>
                                 </div>
-                              ))}
-                              <div className="mt-4">
-                                <textarea
-                                  className="w-full p-2 border text-[14px] sm:text-sm rounded"
-                                  placeholder="Add a comment..."
-                                  value={commentContent}
-                                  onChange={(e) =>
-                                    setCommentContent(e.target.value)
-                                  }
-                                />
-                                <button
-                                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded text-[13px] sm:text-sm hover:bg-blue-600"
-                                  onClick={() => addComment(post?._id)}
-                                >
-                                  Post Comment
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
                         </div>
                       ))}
                     </>
                   )}
                   {/* Add new friends  */}
                   <div className="max-w-xl mt-5 bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 className="text-lg mb-4 font-semibold text-teal-400">
+                    <h2 className="text-lg mb-4 font-semibold text-teal-500">
                       Add New Friends
                     </h2>
                     <div className="space-y-4">
@@ -421,23 +477,25 @@ export default function Home() {
                 {/* Sidebar */}
                 <div className="w-11/12 sm:w-3/4 md:w-1/2 mt-2 md:mt-10 mx-auto">
                   {/* Your Profile  */}
-                  <div className="bg-teal-50 rounded-lg shadow p-6 mb-6">
-                    <h2 className="font-semibold mb-4 text-teal-500 text-lg">
+                  <div className="bg-teal-50 rounded-lg shadow border p-6 mb-6">
+                    <h2 className="font-semibold mb-2 text-teal-500 text-lg">
                       Your Profile
                     </h2>
-                    <div className="flex items-center mb-4 text-sm sm:text-base">
+                    <div className="flex items-center text-sm sm:text-base">
                       <div>
                         <p className="text-teal-700">
-                          username :{" "}
+                          <span className="text-teal-700/60">username:</span>{" "}
                           <span className="font-semibold">
                             {user?.username}
                           </span>
                         </p>
                         <p className="text-gray-500 text-teal-700">
-                          email : {user?.email}
+                          <span className="text-teal-700/60">email:</span>{" "}
+                          {user?.email}
                         </p>
                         <p className="text-teal-700">
-                          friends : <span>{user?.friends.length}</span>
+                          <span className="text-teal-700/60">friends:</span>{" "}
+                          <span>{user?.friends.length}</span>
                         </p>
                       </div>
                     </div>
@@ -449,7 +507,7 @@ export default function Home() {
                     </h2>
                     {friendRequests.length === 0 ? (
                       <div className="text-[12px] sm:text-sm text-gray-400">
-                        No Requests
+                        No new request
                       </div>
                     ) : (
                       <div className="space-y-4">
@@ -467,7 +525,7 @@ export default function Home() {
                             </div>
                             <div className="space-x-2 flex">
                               <button
-                                className="px-3 py-1 bg-blue-600 text-white text-[12px] sm:text-sm rounded-md hover:bg-indigo-700"
+                                className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-indigo-700"
                                 onClick={() =>
                                   handleFriendRequest(request?._id, "accepted")
                                 }
@@ -475,7 +533,7 @@ export default function Home() {
                                 Accept
                               </button>
                               <button
-                                className="px-3 py-1 bg-gray-200 text-gray-800 text-[12px] sm:text-sm rounded-md hover:bg-gray-300"
+                                className="px-3 py-1 bg-gray-200 text-gray-800 text-xs rounded hover:bg-gray-300"
                                 onClick={() =>
                                   handleFriendRequest(request?._id, "rejected")
                                 }

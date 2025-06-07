@@ -3,6 +3,7 @@ import { HiPencilSquare } from "react-icons/hi2";
 import { FaCircleUser } from "react-icons/fa6";
 import { FiLogOut } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar({ username, fetchPost }) {
   const ENDPOINT = import.meta.env.VITE_REACT_BASE_URL;
@@ -74,15 +75,27 @@ export default function Navbar({ username, fetchPost }) {
           <FiLogOut className="text-xl text-red-600" />
         </button>
       </div>
+      <AnimatePresence>
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
-          <div className="bg-white w-[80%] md:w-1/2 p-6 rounded shadow-md">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="bg-white w-[85%] max-w-3xl p-6 sm:p-8 rounded-2xl shadow-md"
+          >
             <h2 className="text-lg font-semibold text-teal-700 mb-4">
               Create a Post
             </h2>
             <form onSubmit={handlePostSubmit}>
               <textarea
-                className="w-full h-32 p-2 border border-gray-300 rounded mb-4"
+                className="w-full h-40 p-2 border border-gray-300 rounded mb-4"
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 placeholder="What's on your mind?"
@@ -91,22 +104,23 @@ export default function Navbar({ username, fetchPost }) {
               <div className="flex justify-end">
                 <button
                   type="button"
-                  className="mr-2 py-1.5 px-3 text-gray-600"
+                  className="mr-2 py-1 px-3 text-gray-600 rounded hover:bg-gray-100"
                   onClick={() => setIsModalOpen(false)}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="py-1.5 px-3 bg-teal-500 text-white rounded"
+                  className="py-1 px-3 bg-teal-500 text-white rounded"
                 >
                   Post
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

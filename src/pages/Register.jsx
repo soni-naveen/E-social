@@ -68,12 +68,12 @@ export default function Signup() {
           </div>
         </div>
       ) : (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-100 via-cyan-100 to-white py-12 px-3 sm:px-6 lg:px-8">
-          <div className="max-w-md w-full space-y-8 p-8 sm:p-10 backdrop-blur-md shadow-md bg-slate-100/60 rounded-lg">
+        <div className="h-[calc(100vh)] flex items-center justify-center bg-gradient-to-br from-teal-100 via-cyan-100 to-white py-12 px-3 sm:px-6 lg:px-8">
+          <div className="max-w-md w-full space-y-8 p-8 sm:p-10 backdrop-blur-md shadow-lg bg-slate-100/60 rounded-lg">
             <div className="pl-1 text-2xl sm:text-3xl text-teal-600">
-              <p className="text-xs sm:text-sm font-medium">E-Social</p>
+              <p className="text-xs sm:text-sm font-semibold">E-Social</p>
               <p className="font-semibold mt-2">Create Account</p>
-              <p className="text-xs sm:text-sm mt-1">
+              <p className="text-xs sm:text-sm mt-1 text-neutral-700">
                 Connect with friends, meet new ones, and share moments.
               </p>
             </div>
@@ -90,7 +90,7 @@ export default function Signup() {
                     value={formData.username}
                     onChange={handleChange}
                     className="w-full px-3 py-2 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-300"
-                    placeholder="username"
+                    placeholder="Username"
                   />
                 </div>
                 <div>
@@ -131,7 +131,7 @@ export default function Signup() {
               <div>
                 <button
                   type="submit"
-                  className="w-full mx-auto flex justify-center py-2 px-4 border border-transparent text-xs sm:text-sm font-medium rounded-md text-white bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-600"
+                  className="w-full mx-auto flex justify-center py-2 px-4 border border-transparent text-xs sm:text-sm font-semibold rounded-md text-white bg-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-600"
                 >
                   SIGN UP
                 </button>
