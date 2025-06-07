@@ -59,7 +59,7 @@ export default function Navbar({ username, fetchPost }) {
           className="py-1 px-3 rounded-full flex items-center gap-1 border border-teal-500 text-teal-500 hover:bg-teal-500 hover:text-white"
         >
           <HiPencilSquare className="text-lg" />
-          <span className="text-sm font-medium">Post</span>
+          <span className="text-sm">Post</span>
         </button>
         <button className="flex items-center space-x-2 text-gray-500">
           <FaCircleUser className="text-2xl" />
