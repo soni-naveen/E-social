@@ -44,7 +44,7 @@ export default function Login() {
         localStorage.setItem("token", data.token);
         setSuccessMessage("Login successful!");
         setFormData({ username: "", password: "" });
-        navigate("/");
+        navigate("/?feed=recent");
       } else {
         setError(data.message);
       }

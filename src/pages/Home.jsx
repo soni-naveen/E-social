@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import Loader from "../components/Loader";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import { convertCreatedAt } from "../utils/dateConverter";
 import { MdDelete } from "react-icons/md";
 import { FiMoreVertical } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { FaCircleUser } from "react-icons/fa6";
+import Loader from "../components/Loader";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const Date = ({ createdAt }) => {
   const formattedTime = convertCreatedAt(createdAt);
@@ -231,8 +232,8 @@ export default function Home() {
     }
   };
 
+  // Expand Comments
   const [expandedComments, setExpandedComments] = useState({});
-
   const toggleComments = (postId) => {
     setExpandedComments((prev) => ({
       ...prev,
@@ -240,14 +241,12 @@ export default function Home() {
     }));
   };
 
+  // Delete Post Menu
   const [openMenuPostId, setOpenMenuPostId] = useState(false);
-
   const toggleMenu = (post) => {
     setOpenMenuPostId(openMenuPostId === post._id ? null : post._id);
   };
-
   const menuRefs = useRef({});
-
   useEffect(() => {
     const handleClickOutside = (event) => {
       const openMenuRef = menuRefs.current[openMenuPostId];
@@ -262,6 +261,15 @@ export default function Home() {
     };
   }, [openMenuPostId]);
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const feedtype = urlParams.get("type");
+  const [feed, setFeed] = useState(`${feedtype}`);
+
+  const handleTabClick = (tab) => {
+    setFeed(tab);
+    navigate(`/feed?type=${tab}`);
+  };
+
   return (
     <>
       {token ? (
@@ -275,183 +283,225 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <main className="max-w-7xl mx-auto px-2 sm:px-6 py-6">
+            <main className="max-w-7xl mx-auto sm:px-6 py-6">
               <div className="flex flex-col md:flex-row sm:gap-7 lg:gap-10">
-                {/* Feed */}
+                {/* Feed tab */}
                 <div className="w-11/12 sm:w-3/4 mx-auto">
-                  <h2 className="sm:text-lg font-semibold mb-4">
-                    Recent updates
-                  </h2>
-                  {posts.length === 0 ? (
+                  <div className="relative inline-flex rounded-md bg-gray-100 p-1 mb-6">
+                    <div
+                      className={`absolute top-0 left-0 h-full w-1/2 bg-white rounded-md shadow transition-transform duration-300 ${
+                        feed === "mypost" ? "translate-x-full" : "translate-x-0"
+                      }`}
+                    />
+                    <button
+                      onClick={() => handleTabClick("recent")}
+                      className={`relative z-10 w-32 sm:w-40 text-sm sm:text-base font-semibold py-1 px-2 rounded-md transition-colors duration-300 ${
+                        feed === "recent" ? "text-black" : "text-gray-500"
+                      }`}
+                    >
+                      Recent updates
+                    </button>
+                    <button
+                      onClick={() => handleTabClick("mypost")}
+                      className={`relative z-10 w-32 sm:w-40 text-sm sm:text-base font-semibold py-1 px-2 rounded-md transition-colors duration-300 ${
+                        feed === "mypost" ? "text-black" : "text-gray-500"
+                      }`}
+                    >
+                      My Posts
+                    </button>
+                  </div>
+
+                  {/* All Posts  */}
+                  {posts.filter((post) =>
+                    feed === "mypost" ? post.author._id === user._id : true
+                  ).length === 0 ? (
                     <div className="text-gray-400">
-                      Add friends to see posts!
+                      {feed === "mypost"
+                        ? "You haven't posted anything yet. Start posting now!"
+                        : "Add friends to see posts!"}
                     </div>
                   ) : (
                     <>
-                      {posts.map((post) => (
-                        <div
-                          key={post?._id}
-                          className="bg-white rounded-lg shadow border mb-6 p-6 relative"
-                        >
-                          <div className="flex items-center mb-4">
-                            <div>
-                              <h3 className="font-semibold">
-                                {post?.author?.username}
-                              </h3>
-                              <div className="text-gray-500 text-xs">
-                                <Date createdAt={post?.createdAt} />
+                      {posts
+                        .filter((post) =>
+                          feed === "mypost"
+                            ? post.author._id === user._id
+                            : true
+                        )
+                        .map((post) => (
+                          <div
+                            key={post?._id}
+                            className="bg-white rounded-lg shadow border mb-6 p-6 relative"
+                          >
+                            {/* Post Content  */}
+                            <div className="flex items-center mb-4">
+                              <div>
+                                <h3 className="font-semibold">
+                                  {post?.author?.username}
+                                </h3>
+                                <div className="text-gray-500 text-xs">
+                                  <Date createdAt={post?.createdAt} />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <p className="mb-4 text-sm sm:text-base">
-                            {post?.content}
-                          </p>
-                          {/* Like, Comment and Delete post */}
-                          <div className="flex items-center text-gray-500 text-sm">
-                            <button
-                              className="flex items-center mr-6 hover:text-red-600"
-                              onClick={() => likePost(post?._id)}
-                            >
-                              <svg
-                                className="w-5 h-5 mr-1"
-                                fill={
-                                  post.likes.includes(user?._id)
-                                    ? "red"
-                                    : "none"
-                                }
-                                stroke={
-                                  post.likes.includes(user?._id)
-                                    ? "red"
-                                    : "currentColor"
-                                }
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                />
-                              </svg>
-                              <div
-                                className={
-                                  post.likes.includes(user?._id)
-                                    ? "font-semibold text-red-500"
-                                    : "font-normal"
-                                }
-                              >
-                                {post?.likes?.length}{" "}
-                                {post?.likes?.length === 1 ? "like" : "likes"}
-                              </div>
-                            </button>
-                            <button
-                              className="flex items-center hover:text-teal-600"
-                              onClick={() => toggleComments(post?._id)}
-                            >
-                              <svg
-                                className="w-5 h-5 mr-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                />
-                              </svg>
-                              {post?.comments?.length}{" "}
-                              {post?.comments?.length === 1
-                                ? "comment"
-                                : "comments"}
-                            </button>
-                          </div>
-                          {/* Only show delete button if the logged-in user is the post author */}
-                          <div className="absolute top-3 right-3">
-                            {user?._id === post?.author?._id && (
-                              <div
-                                className="relative"
-                                ref={(el) => (menuRefs.current[post._id] = el)}
-                              >
-                                <button onClick={() => toggleMenu(post)}>
-                                  <FiMoreVertical size={20} />
-                                </button>
+                            <p className="mb-4 text-sm sm:text-base">
+                              {post?.content}
+                            </p>
 
-                                {/* Dropdown menu */}
-                                {openMenuPostId === post._id && (
-                                  <div className="absolute top-3 right-2 mt-2 bg-white border rounded shadow-md z-10">
-                                    <button
-                                      onClick={() =>
-                                        confirmDeletePost(post._id)
-                                      }
-                                      className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 w-full text-sm"
+                            {/* Like, Comment and Delete post */}
+                            <div className="flex items-center text-gray-500 text-sm">
+                              {/* Like Button  */}
+                              <button
+                                className="flex items-center mr-6 hover:text-red-600"
+                                onClick={() => likePost(post?._id)}
+                              >
+                                <svg
+                                  className="w-5 h-5 mr-1"
+                                  fill={
+                                    post.likes.includes(user?._id)
+                                      ? "red"
+                                      : "none"
+                                  }
+                                  stroke={
+                                    post.likes.includes(user?._id)
+                                      ? "red"
+                                      : "currentColor"
+                                  }
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                  />
+                                </svg>
+                                <div
+                                  className={
+                                    post.likes.includes(user?._id)
+                                      ? "font-semibold text-red-500"
+                                      : "font-normal"
+                                  }
+                                >
+                                  {post?.likes?.length}{" "}
+                                  {post?.likes?.length === 1 ? "like" : "likes"}
+                                </div>
+                              </button>
+                              {/* Comment Button  */}
+                              <button
+                                className="flex items-center hover:text-teal-600"
+                                onClick={() => toggleComments(post?._id)}
+                              >
+                                <svg
+                                  className="w-5 h-5 mr-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                  />
+                                </svg>
+                                {post?.comments?.length}{" "}
+                                {post?.comments?.length === 1
+                                  ? "comment"
+                                  : "comments"}
+                              </button>
+                            </div>
+
+                            {/* Delete Button */}
+                            <div className="absolute top-3 right-3">
+                              {user?._id === post?.author?._id && (
+                                <div
+                                  className="relative"
+                                  ref={(el) =>
+                                    (menuRefs.current[post._id] = el)
+                                  }
+                                >
+                                  <button onClick={() => toggleMenu(post)}>
+                                    <FiMoreVertical size={20} />
+                                  </button>
+
+                                  {/* Dropdown menu */}
+                                  {openMenuPostId === post._id && (
+                                    <div className="absolute top-3 right-2 mt-2 bg-white border rounded shadow-md z-10">
+                                      <button
+                                        onClick={() =>
+                                          confirmDeletePost(post._id)
+                                        }
+                                        className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 w-full text-sm"
+                                      >
+                                        <MdDelete className="mr-1 mt-0.5" />
+                                        Delete
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Expand comments  */}
+                            <AnimatePresence>
+                              {expandedComments[post?._id] && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{
+                                    duration: 0.3,
+                                    ease: "easeInOut",
+                                  }}
+                                  className="mt-4"
+                                >
+                                  <h4 className="font-semibold text-xs sm:text-sm text-teal-600">
+                                    Comments
+                                  </h4>
+                                  {post?.comments?.map((comment) => (
+                                    <div
+                                      key={comment?._id}
+                                      className="my-2 p-2 bg-gray-100 rounded"
                                     >
-                                      <MdDelete className="mr-1 mt-0.5" />
-                                      Delete
+                                      <p className="text-[14px] sm:text-sm">
+                                        <span className="font-medium">
+                                          {comment?.author?.username}:
+                                        </span>{" "}
+                                        {comment?.content}
+                                      </p>
+                                      <small className="text-gray-500 text-[10px]">
+                                        <Date createdAt={comment?.createdAt} />
+                                      </small>
+                                    </div>
+                                  ))}
+                                  <div className="mt-2 flex flex-col">
+                                    <textarea
+                                      className="w-full p-2 border text-[14px] sm:text-sm rounded resize-none outline-gray-300"
+                                      placeholder="Add a comment..."
+                                      rows={3}
+                                      value={commentContent}
+                                      onChange={(e) =>
+                                        setCommentContent(e.target.value)
+                                      }
+                                    />
+                                    <button
+                                      className="mt-2 px-4 py-2 bg-slate-200 text-black rounded text-xs hover:bg-slate-300 w-fit self-end"
+                                      onClick={() => addComment(post?._id)}
+                                    >
+                                      Post Comment
                                     </button>
                                   </div>
-                                )}
-                              </div>
-                            )}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
                           </div>
-                          <AnimatePresence>
-                            {expandedComments[post?._id] && (
-                              <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{
-                                  duration: 0.3,
-                                  ease: "easeInOut",
-                                }}
-                                className="mt-4"
-                              >
-                                <h4 className="font-semibold text-xs sm:text-sm text-teal-600">
-                                  Comments
-                                </h4>
-                                {post?.comments?.map((comment) => (
-                                  <div
-                                    key={comment?._id}
-                                    className="my-2 p-2 bg-gray-100 rounded"
-                                  >
-                                    <p className="text-[14px] sm:text-sm">
-                                      <span className="font-medium">
-                                        {comment?.author?.username}:
-                                      </span>{" "}
-                                      {comment?.content}
-                                    </p>
-                                    <small className="text-gray-500 text-[10px]">
-                                      <Date createdAt={comment?.createdAt} />
-                                    </small>
-                                  </div>
-                                ))}
-                                <div className="mt-2 flex flex-col">
-                                  <textarea
-                                    className="w-full p-2 border text-[14px] sm:text-sm rounded resize-none outline-gray-300"
-                                    placeholder="Add a comment..."
-                                    rows={3}
-                                    value={commentContent}
-                                    onChange={(e) =>
-                                      setCommentContent(e.target.value)
-                                    }
-                                  />
-                                  <button
-                                    className="mt-2 px-4 py-2 bg-slate-200 text-black rounded text-xs hover:bg-slate-300 w-fit self-end"
-                                    onClick={() => addComment(post?._id)}
-                                  >
-                                    Post Comment
-                                  </button>
-                                </div>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                        </div>
-                      ))}
+                        ))}
                     </>
                   )}
+
                   {/* Add new friends  */}
                   <div className="max-w-xl mt-5 bg-white rounded-lg shadow-md p-6 mb-6">
                     <h2 className="text-lg mb-4 font-semibold text-teal-500">
@@ -479,31 +529,40 @@ export default function Home() {
                 </div>
 
                 {/* Sidebar */}
-                <div className="w-11/12 sm:w-3/4 md:w-1/2 mt-2 md:mt-10 mx-auto">
+                <div className="w-11/12 sm:w-3/4 md:w-1/2 md:mt-16 mx-auto">
                   {/* Your Profile  */}
                   <div className="bg-teal-50 rounded-lg shadow border p-6 mb-6">
-                    <h2 className="font-semibold mb-2 text-teal-500 text-lg">
-                      Your Profile
-                    </h2>
-                    <div className="flex items-center text-sm sm:text-base">
+                    <h2 className="text-center mb-2 text-teal-500">Profile</h2>
+                    <div className="flex items-center justify-center text-base sm:text-lg">
                       <div>
-                        <p className="text-teal-700">
-                          <span className="text-teal-700/60">username:</span>{" "}
+                        <p className="text-teal-700 w-full flex items-center justify-center gap-2">
+                          <FaCircleUser className="text-xl" />
                           <span className="font-semibold">
                             {user?.username}
                           </span>
                         </p>
-                        <p className="text-gray-500 text-teal-700">
-                          <span className="text-teal-700/60">email:</span>{" "}
-                          {user?.email}
-                        </p>
-                        <p className="text-teal-700">
-                          <span className="text-teal-700/60">friends:</span>{" "}
-                          <span>{user?.friends.length}</span>
-                        </p>
+                        <div className="flex justify-center gap-10 text-teal-700 text-xs sm:text-sm mt-2">
+                          <div>
+                            <p className="text-teal-700">friends</p>
+                            <p className="font-bold text-center">
+                              {user?.friends.length}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-teal-700">Posts</p>
+                            <p className="font-bold text-center">
+                              {
+                                posts.filter(
+                                  (post) => post.author._id === user._id
+                                ).length
+                              }
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+
                   {/* Friend Requests  */}
                   <div className="bg-white rounded-lg shadow p-6 mb-6">
                     <h2 className="text-lg mb-4 text-gray-600">
@@ -550,6 +609,7 @@ export default function Home() {
                       </div>
                     )}
                   </div>
+
                   {/* Your Friends  */}
                   <div className="bg-white rounded-lg shadow p-6">
                     <h2 className="text-lg mb-4 text-gray-600">Your Friends</h2>

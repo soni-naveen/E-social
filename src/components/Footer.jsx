@@ -27,7 +27,7 @@ export default function Footer() {
               <ul className="space-y-2">
                 <li>
                   <a
-                    href="#home"
+                    href="/"
                     className="text-gray-500 hover:text-black hover:underline"
                   >
                     Home
@@ -35,15 +35,17 @@ export default function Footer() {
                 </li>
                 <li>
                   <a
-                    href="#about"
+                    target="_blank"
+                    href="https://naveensoni.vercel.app"
                     className="text-gray-500 hover:text-black hover:underline"
                   >
-                    About Us
+                    About
                   </a>
                 </li>
                 <li>
                   <a
-                    href="#services"
+                    target="_blank"
+                    href="https://theecoride.in"
                     className="text-gray-500 hover:text-black hover:underline"
                   >
                     Services
@@ -51,10 +53,11 @@ export default function Footer() {
                 </li>
                 <li>
                   <a
-                    href="mailto:naveennsonii@gmail.com"
+                    target="_blank"
+                    href="mailto:naveen@theecoride.in"
                     className="text-gray-500 hover:text-black hover:underline"
                   >
-                    Contact Us
+                    Contact
                   </a>
                 </li>
               </ul>

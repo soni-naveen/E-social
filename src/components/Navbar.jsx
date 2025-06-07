@@ -49,7 +49,7 @@ export default function Navbar({ username, fetchPost }) {
   };
 
   return (
-    <div className="mx-auto sticky top-0 z-10 bg-white px-4 sm:px-6 lg:px-8 py-4 shadow-md flex justify-between items-center">
+    <div className="mx-auto sticky top-0 z-50 bg-white px-4 sm:px-6 lg:px-8 py-4 shadow-md flex justify-between items-center">
       <h1 className="text-xl font-semibold text-teal-500 sm:text-2xl cursor-pointer">
         E-Social
       </h1>
