@@ -36,7 +36,7 @@ export default function Home() {
   useEffect(() => {
     fetchAllUsers();
     console.log("user fetched");
-  }, [user]);
+  }, []);
 
   // Get User Details
   const fetchUser = async () => {
@@ -238,11 +238,11 @@ export default function Home() {
       {token ? (
         <div className="bg-slate-50">
           <Navbar username={user?.username} fetchPost={fetchPosts} />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <main className="max-w-7xl mx-auto px-2 sm:px-6 py-6">
             <div className="flex flex-col md:flex-row sm:gap-7 lg:gap-10">
               {/* Feed */}
               <div className="w-11/12 sm:w-3/4 mx-auto">
-                <h2 className="text-xl font-semibold mb-4">Recent updates</h2>
+                <h2 className="sm:text-lg font-semibold mb-4">Recent updates</h2>
                 {posts?.length === 0 ? (
                   <div className="text-gray-400">Add friends to see posts!</div>
                 ) : (
@@ -254,10 +254,10 @@ export default function Home() {
                       >
                         <div className="flex items-center mb-4">
                           <div>
-                            <h3 className="font-bold">
+                            <h3 className="font-semibold">
                               {post?.author?.username}
                             </h3>
-                            <div className="text-gray-500 sm:text-sm text-[12px]">
+                            <div className="text-gray-500 sm:mt-0.5 text-xs">
                               <Date createdAt={post?.createdAt} />
                             </div>
                           </div>
@@ -291,13 +291,11 @@ export default function Home() {
                               />
                             </svg>
                             <div
-                              className={`{
-                                ${
-                                  post.likes.includes(user?._id)
-                                    ? "font-semibold text-red-500"
-                                    : "font-normal"
-                                }
-                              }`}
+                              className={
+                                post.likes.includes(user?._id)
+                                  ? "font-semibold text-red-500"
+                                  : "font-normal"
+                              }
                             >
                               {post?.likes?.length} Likes
                             </div>
@@ -375,7 +373,7 @@ export default function Home() {
                 )}
                 {/* Add new friends  */}
                 <div className="max-w-xl mt-5 bg-white rounded-lg shadow-md p-6 mb-6">
-                  <h2 className="text-lg font-semibold mb-4 text-gray-600">
+                  <h2 className="text-lg mb-4 font-semibold text-teal-400">
                     Add New Friends
                   </h2>
                   <div className="space-y-4">
@@ -384,7 +382,7 @@ export default function Home() {
                         key={user?._id}
                         className="flex justify-between items-center"
                       >
-                        <span className="font-bold text-sm sm:text-base">
+                        <span className="font-semibold text-sm sm:text-base">
                           {user?.username}
                         </span>
                         <button
@@ -410,21 +408,20 @@ export default function Home() {
                     <div>
                       <p className="text-teal-700">
                         username :{" "}
-                        <span className="font-bold">{user?.username}</span>
+                        <span className="font-semibold">{user?.username}</span>
                       </p>
                       <p className="text-gray-500 text-teal-700">
                         email : {user?.email}
                       </p>
                       <p className="text-teal-700">
-                        friends :{" "}
-                        <span className="font-bold">{user?.friends.length}</span>
+                        friends : <span>{user?.friends.length}</span>
                       </p>
                     </div>
                   </div>
                 </div>
                 {/* Friend Requests  */}
                 <div className="bg-white rounded-lg shadow p-6 mb-6">
-                  <h2 className="text-lg font-semibold mb-4 text-gray-600">
+                  <h2 className="text-lg mb-4 text-gray-600">
                     New Friend Requests
                   </h2>
                   {friendRequests.length === 0 ? (
@@ -470,9 +467,7 @@ export default function Home() {
                 </div>
                 {/* Your Friends  */}
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-semibold mb-4 text-gray-600">
-                    Your Friends
-                  </h2>
+                  <h2 className="text-lg mb-4 text-gray-600">Your Friends</h2>
                   {user?.friends?.length === 0 ? (
                     <div className="text-[12px] sm:text-sm text-gray-400">
                       No Friends
