@@ -246,11 +246,12 @@ export default function Home() {
     setOpenMenuPostId(openMenuPostId === post._id ? null : post._id);
   };
 
-  const menuRef = useRef(null);
+  const menuRefs = useRef({});
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
+      const openMenuRef = menuRefs.current[openMenuPostId];
+      if (openMenuRef && !openMenuRef.contains(event.target)) {
         setOpenMenuPostId(null);
       }
     };
@@ -259,7 +260,7 @@ export default function Home() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [menuRef]);
+  }, [openMenuPostId]);
 
   return (
     <>
@@ -369,9 +370,12 @@ export default function Home() {
                             </button>
                           </div>
                           {/* Only show delete button if the logged-in user is the post author */}
-                          <div className="absolute top-3 right-3" ref={menuRef}>
+                          <div className="absolute top-3 right-3">
                             {user?._id === post?.author?._id && (
-                              <div className="relative">
+                              <div
+                                className="relative"
+                                ref={(el) => (menuRefs.current[post._id] = el)}
+                              >
                                 <button onClick={() => toggleMenu(post)}>
                                   <FiMoreVertical size={20} />
                                 </button>

@@ -95,7 +95,7 @@ export default function Navbar({ username, fetchPost }) {
             </h2>
             <form onSubmit={handlePostSubmit}>
               <textarea
-                className="w-full h-40 p-2 border border-gray-300 rounded mb-4"
+                className="w-full h-40 p-2 border border-gray-300 rounded mb-4 outline-gray-400"
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 placeholder="What's on your mind?"
