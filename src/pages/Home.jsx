@@ -285,8 +285,8 @@ export default function Home() {
           ) : (
             <main className="max-w-7xl mx-auto sm:px-6 py-6">
               <div className="flex flex-col md:flex-row sm:gap-7 lg:gap-10">
-                {/* Feed tab */}
                 <div className="w-11/12 sm:w-3/4 mx-auto">
+                  {/* Feed tab */}
                   <div className="relative inline-flex rounded-md bg-gray-100 p-1 mb-6">
                     <div
                       className={`absolute top-0 left-0 h-full w-1/2 bg-white rounded-md shadow transition-transform duration-300 ${
@@ -326,7 +326,7 @@ export default function Home() {
                         .filter((post) =>
                           feed === "mypost"
                             ? post.author._id === user._id
-                            : true
+                            : post.author._id !== user._id
                         )
                         .map((post) => (
                           <div
