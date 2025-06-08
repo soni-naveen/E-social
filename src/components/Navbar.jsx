@@ -71,6 +71,7 @@ export default function Navbar({ username, fetchPost }) {
         <button
           className="p-2 rounded-full bg-red-50 hover:bg-red-100"
           onClick={handleLogout}
+          title="Logout"
         >
           <FiLogOut className="text-xl text-red-600" />
         </button>
