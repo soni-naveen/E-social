@@ -10,6 +10,7 @@ export default function Signup() {
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -28,12 +29,21 @@ export default function Signup() {
     setError("");
     setSuccessMessage("");
 
-    if (!formData.username.trim() || !formData.email || !formData.password) {
+    if (
+      !formData.username.trim() ||
+      !formData.email ||
+      !formData.password ||
+      !formData.confirmPassword
+    ) {
       setError("All fields are required.");
       return;
     }
 
     try {
+      if (formData.password !== formData.confirmPassword) {
+        alert("Password and Confirm Password does not match!");
+        return;
+      }
       setLoading(true);
       const response = await fetch(`${ENDPOINT}/auth/register`, {
         method: "POST",
@@ -46,7 +56,12 @@ export default function Signup() {
       const data = await response.json();
       if (response.ok) {
         setSuccessMessage("Signup successful!");
-        setFormData({ username: "", email: "", password: "" });
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
         navigate("/login");
       } else {
         setError(data.message);
@@ -89,7 +104,7 @@ export default function Signup() {
                     pattern="^[a-z0-9_\-]{3,10}$"
                     value={formData.username}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-300"
+                    className="w-full px-3 py-2 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-400"
                     placeholder="Username"
                   />
                 </div>
@@ -101,7 +116,7 @@ export default function Signup() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-300"
+                    className="w-full px-3 py-2 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-400"
                     placeholder="Email address"
                   />
                 </div>
@@ -113,8 +128,20 @@ export default function Signup() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full px-3 py-2 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-300"
+                    className="w-full px-3 py-2 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-400"
                     placeholder="Password"
+                  />
+                </div>
+                <div>
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="w-full px-3 py-2 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-400"
+                    placeholder="Confirm Password"
                   />
                 </div>
               </div>

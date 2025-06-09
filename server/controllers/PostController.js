@@ -56,18 +56,7 @@ exports.getFeed = async (req, res) => {
       })
       .sort("-createdAt");
 
-    const postsWithFriendsComments = await Post.find({
-      author: { $nin: [...user.friends, req.user.id] },
-      comments: { $elemMatch: { author: { $in: user.friends } } },
-    })
-      .populate("author", "username")
-      .populate({
-        path: "comments",
-        populate: { path: "author", select: "username" },
-      })
-      .sort("-createdAt");
-
-    const feed = [...userPost, ...friendsPosts, ...postsWithFriendsComments]
+    const feed = [...userPost, ...friendsPosts]
       .sort((a, b) => b.createdAt - a.createdAt)
       .map((post) => ({
         ...post.toObject(),

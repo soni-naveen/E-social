@@ -1,4 +1,8 @@
+const mongoose = require("mongoose");
 const User = require("../models/User");
+const Comment = require("../models/Comment");
+const Post = require("../models/Post");
+const FriendRequest = require("../models/FriendRequest");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -67,6 +71,7 @@ exports.login = async (req, res) => {
   }
 };
 
+// User Details
 exports.getUserDetails = async (req, res) => {
   const id = req.user.id;
   const user = await User.findById(id).populate("friends");
@@ -78,6 +83,7 @@ exports.getUserDetails = async (req, res) => {
   });
 };
 
+// All Users
 exports.allUsers = async (req, res) => {
   try {
     const currentUserId = req.user.id;
@@ -96,6 +102,57 @@ exports.allUsers = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error",
+    });
+  }
+};
+
+// Delete Account
+exports.deleteAccount = async (req, res) => {
+  try {
+    const id = req.user.id;
+    const user = await User.findById({ _id: id });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const userComments = await Comment.find({ author: user._id }).select("_id");
+    const commentIds = userComments.map((c) => c._id);
+
+    await Post.updateMany(
+      { comments: { $in: commentIds } },
+      { $pull: { comments: { $in: commentIds } } }
+    );
+
+    await Comment.deleteMany({
+      author: user._id,
+    });
+
+    await Post.updateMany({ likes: user._id }, { $pull: { likes: user._id } });
+
+    await FriendRequest.deleteMany({
+      $or: [{ sender: user._id }, { receiver: user._id }],
+    });
+
+    await Post.deleteMany({
+      author: user._id,
+    });
+
+    //Now final delete the User...
+    await User.findByIdAndDelete({ _id: id });
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      message: "Error occured while deleting Account..",
     });
   }
 };

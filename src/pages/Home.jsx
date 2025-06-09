@@ -23,24 +23,33 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [posts, setPosts] = useState([]);
   const [user, setUser] = useState(null);
-  const [commentContent, setCommentContent] = useState("");
+  const [commentContent, setCommentContent] = useState({});
   const [friendRequests, setFriendRequests] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!token || token == null) {
+    if (!token) {
       navigate("/login");
     } else {
-      fetchUser();
-      fetchPosts();
+      const fetchData = async () => {
+        try {
+          await fetchUser();
+          await fetchPosts();
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      };
+      fetchData();
     }
   }, [token, navigate]);
 
   useEffect(() => {
-    fetchAllUsers();
-    console.log("user fetched");
+    const allUsers = async () => {
+      await fetchAllUsers();
+    };
+    allUsers();
   }, []);
 
   // Get User Details
@@ -52,12 +61,17 @@ export default function Home() {
           Authorization: `Bearer ${token}`,
         },
       });
-      const userdetails = await response.json();
-      setUser(userdetails?.user);
-      await fetchPosts();
-      await fetchFriendRequests();
+      if (response.ok) {
+        const userdetails = await response.json();
+        setUser(userdetails?.user);
+        await fetchPosts();
+        await fetchFriendRequests();
+      } else {
+        throw new Error("Failed to fetch users");
+      }
     } catch (error) {
       console.error("Invalid token:", error);
+      localStorage.removeItem("token");
     } finally {
       setLoading(false);
     }
@@ -147,10 +161,10 @@ export default function Home() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ content: commentContent }),
+        body: JSON.stringify({ content: commentContent[postId] }),
       });
       if (response.ok) {
-        setCommentContent("");
+        setCommentContent((prev) => ({ ...prev, [postId]: "" }));
         fetchPosts();
       } else {
         throw new Error("Failed to add comment");
@@ -229,6 +243,32 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error adding friend:", error);
+    }
+  };
+
+  // Delete Account
+  const deleteAccount = async () => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to DELETE YOUR ACCOUNT?"
+    );
+    if (isConfirmed) {
+      try {
+        setLoading(true);
+        const response = await fetch(`${ENDPOINT}/auth/deleteAccount`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (response.ok) {
+          localStorage.removeItem("token");
+          console.log("Account deleted successfully");
+        } else {
+          throw new Error("Failed to delete account...");
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -482,9 +522,12 @@ export default function Home() {
                                       className="w-full p-2 border text-[14px] sm:text-sm rounded resize-none outline-gray-300"
                                       placeholder="Add a comment..."
                                       rows={3}
-                                      value={commentContent}
+                                      value={commentContent[post?._id] || ""}
                                       onChange={(e) =>
-                                        setCommentContent(e.target.value)
+                                        setCommentContent((prev) => ({
+                                          ...prev,
+                                          [post?._id]: e.target.value,
+                                        }))
                                       }
                                     />
                                     <button
@@ -559,6 +602,12 @@ export default function Home() {
                             </p>
                           </div>
                         </div>
+                        <button
+                          onClick={deleteAccount}
+                          className="text-xs text-red-400 text-center border border-red-400 w-full mt-5 py-1 rounded-full hover:bg-red-100 hover:border-red-100"
+                        >
+                          Delete Account
+                        </button>
                       </div>
                     </div>
                   </div>
