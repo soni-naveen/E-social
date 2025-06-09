@@ -8,6 +8,7 @@ import { FaCircleUser } from "react-icons/fa6";
 import Loader from "../components/Loader";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import Swal from "sweetalert2";
 
 const Date = ({ createdAt }) => {
   const formattedTime = convertCreatedAt(createdAt);
@@ -248,27 +249,39 @@ export default function Home() {
 
   // Delete Account
   const deleteAccount = async () => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to DELETE YOUR ACCOUNT?"
-    );
-    if (isConfirmed) {
-      try {
-        setLoading(true);
-        const response = await fetch(`${ENDPOINT}/auth/deleteAccount`, {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          localStorage.removeItem("token");
-          console.log("Account deleted successfully");
-        } else {
-          throw new Error("Failed to delete account...");
+    try {
+      const confirmDelete = await Swal.fire({
+        title: "Are You Sure?",
+        text: "DELETE your account is a permanent action.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Confirm",
+        focusCancel: true, // Set the default focus to Cancel button
+      });
+
+      if (confirmDelete.isConfirmed) {
+        try {
+          setLoading(true);
+          const response = await fetch(`${ENDPOINT}/auth/deleteAccount`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (response.ok) {
+            localStorage.removeItem("token");
+            console.log("Account deleted successfully");
+          } else {
+            throw new Error("Failed to delete account...");
+          }
+        } catch (error) {
+          console.log(error);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
       }
+    } catch (error) {
+      console.log("ERROR MESSAGE - ", error.message);
     }
   };
 
