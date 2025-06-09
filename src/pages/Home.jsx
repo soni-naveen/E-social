@@ -233,17 +233,16 @@ export default function Home() {
     }
   };
 
-  // Send friend request
   const [buttonStatus, setButtonStatus] = useState({});
   const [sending, setSending] = useState(false);
-
+  // Send friend request
   const addFriend = async (userId) => {
     if (sending || buttonStatus[userId] === "sent") return;
     setSending(true);
     setButtonStatus((prev) => ({ ...prev, [userId]: "sent" }));
 
     // Wait 1 second before sending request
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     try {
       const response = await fetch(
         `${ENDPOINT}/friend-request/sendRequest/${userId}`,

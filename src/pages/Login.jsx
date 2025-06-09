@@ -93,11 +93,11 @@ export default function Login() {
                       id="username"
                       name="username"
                       type="text"
-                      required
                       value={formData.username}
                       onChange={handleChange}
                       className="w-full px-3 py-2 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-400"
                       placeholder="Username"
+                      autoComplete="off"
                     />
                   </div>
                   <div>
@@ -105,11 +105,11 @@ export default function Login() {
                       id="password"
                       name="password"
                       type="password"
-                      required
                       value={formData.password}
                       onChange={handleChange}
                       className="w-full px-3 py-2 placeholder-gray-500 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-400"
                       placeholder="Password"
+                      autoComplete="off"
                     />
                   </div>
                 </div>
