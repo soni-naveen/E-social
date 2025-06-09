@@ -40,8 +40,12 @@ export default function Signup() {
     }
 
     try {
+      if (formData.password.length < 8) {
+        setError("Password must have at least 8 characters.");
+        return;
+      }
       if (formData.password !== formData.confirmPassword) {
-        alert("Password and Confirm Password does not match!");
+        setError("Password and Confirm Password does not match!");
         return;
       }
       setLoading(true);
@@ -62,7 +66,9 @@ export default function Signup() {
           password: "",
           confirmPassword: "",
         });
-        navigate("/login");
+        setTimeout(() => {
+          navigate("/login");
+        }, 1500);
       } else {
         setError(data.message);
       }
@@ -101,7 +107,7 @@ export default function Signup() {
                     name="username"
                     type="text"
                     required
-                    pattern="^[a-z0-9_\-]{3,10}$"
+                    pattern="^[a-z0-9_\-]{3,20}$"
                     value={formData.username}
                     onChange={handleChange}
                     className="w-full px-3 py-2 text-gray-900 rounded-sm focus:outline-none text-sm sm:text-base placeholder:text-neutral-400"
@@ -150,7 +156,7 @@ export default function Signup() {
                 <p className="text-red-500 text-xs sm:text-sm mt-2">{error}</p>
               )}
               {successMessage && (
-                <p className="text-green-500 text-xs sm:text-sm mt-2">
+                <p className="text-green-500 font-semibold text-xs sm:text-sm mt-2">
                   {successMessage}
                 </p>
               )}
@@ -167,7 +173,7 @@ export default function Signup() {
             <div className="text-gray-500 text-xs sm:text-sm">
               Already have account?{" "}
               <Link to="/login" className="underline text-blue-600">
-                Login
+                Login here
               </Link>
             </div>
           </div>

@@ -5,6 +5,7 @@ import { MdDelete } from "react-icons/md";
 import { FiMoreVertical } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCircleUser } from "react-icons/fa6";
+import { FaUserFriends } from "react-icons/fa";
 import Loader from "../components/Loader";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -77,6 +78,7 @@ export default function Home() {
       setLoading(false);
     }
   };
+
   // Get all feed
   const fetchPosts = async () => {
     try {
@@ -95,6 +97,7 @@ export default function Home() {
       console.error("Error fetching posts:", error);
     }
   };
+
   // Get all friend requests
   const fetchFriendRequests = async () => {
     try {
@@ -113,6 +116,7 @@ export default function Home() {
       console.error("Error fetching friend requests:", error);
     }
   };
+
   // Handle friend request
   const handleFriendRequest = async (requestId, status) => {
     try {
@@ -135,6 +139,7 @@ export default function Home() {
       console.error(`Error ${status}ing friend request:`, error);
     }
   };
+
   // Like Post
   const likePost = async (postId) => {
     try {
@@ -153,6 +158,7 @@ export default function Home() {
       console.error("Error liking post:", error);
     }
   };
+
   // Comment on Post
   const addComment = async (postId) => {
     try {
@@ -174,6 +180,7 @@ export default function Home() {
       console.error("Error adding comment:", error);
     }
   };
+
   // Delete Post with Confirmation
   const confirmDeletePost = (postId) => {
     const isConfirmed = window.confirm(
@@ -183,6 +190,7 @@ export default function Home() {
       deletePost(postId);
     }
   };
+
   // Delete Post
   const deletePost = async (postId) => {
     try {
@@ -204,6 +212,7 @@ export default function Home() {
       console.error("Error deleting post:", error);
     }
   };
+
   // Fetch all users
   const fetchAllUsers = async () => {
     try {
@@ -223,8 +232,18 @@ export default function Home() {
       console.error("Error fetching all users:", error);
     }
   };
+
   // Send friend request
+  const [buttonStatus, setButtonStatus] = useState({});
+  const [sending, setSending] = useState(false);
+
   const addFriend = async (userId) => {
+    if (sending || buttonStatus[userId] === "sent") return;
+    setSending(true);
+    setButtonStatus((prev) => ({ ...prev, [userId]: "sent" }));
+
+    // Wait 1 second before sending request
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     try {
       const response = await fetch(
         `${ENDPOINT}/friend-request/sendRequest/${userId}`,
@@ -237,13 +256,22 @@ export default function Home() {
           body: JSON.stringify({ userId }),
         }
       );
-      if (response.ok) {
-        setAllUsers((prev) => prev.filter((user) => user._id !== userId));
-      } else {
-        throw new Error("Failed to send friend request");
-      }
+      if (!response.ok) throw new Error("Failed to send");
+
+      // Wait 1 second, then remove from list
+      setTimeout(() => {
+        setAllUsers((prev) => prev.filter((u) => u._id !== userId));
+        setButtonStatus((prev) => {
+          const newStatus = { ...prev };
+          delete newStatus[userId]; // Clean up
+          return newStatus;
+        });
+        setSending(false);
+      }, 1000);
     } catch (error) {
-      console.error("Error adding friend:", error);
+      console.error("Friend request failed:", error);
+      setButtonStatus((prev) => ({ ...prev, [userId]: "idle" }));
+      setSending(false);
     }
   };
 
@@ -299,6 +327,7 @@ export default function Home() {
   const toggleMenu = (post) => {
     setOpenMenuPostId(openMenuPostId === post._id ? null : post._id);
   };
+
   const menuRefs = useRef({});
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -368,10 +397,10 @@ export default function Home() {
                   {posts.filter((post) =>
                     feed === "mypost" ? post.author._id === user._id : true
                   ).length === 0 ? (
-                    <div className="text-gray-400">
+                    <div className="text-gray-400 text-sm sm:text-base py-5 px-2">
                       {feed === "mypost"
                         ? "You haven't posted anything yet. Start posting now!"
-                        : "Add friends to see posts!"}
+                        : "Start adding friends to see what they’re sharing!"}
                     </div>
                   ) : (
                     <>
@@ -560,26 +589,44 @@ export default function Home() {
 
                   {/* Add new friends  */}
                   <div className="max-w-xl mt-5 bg-white rounded-lg shadow-md p-6 mb-6">
-                    <h2 className="text-lg mb-4 font-semibold text-teal-500">
+                    <h2 className="text-lg mb-2 font-semibold text-teal-500">
                       Add New Friends
                     </h2>
-                    <div className="space-y-4">
-                      {allUsers.map((user) => (
-                        <div
-                          key={user?._id}
-                          className="flex justify-between items-center"
-                        >
-                          <span className="font-semibold text-sm sm:text-base">
-                            {user?.username}
-                          </span>
-                          <button
-                            className="px-3 py-1 bg-teal-500 text-white text-[12px] sm:text-sm rounded-full hover:bg-teal-600"
-                            onClick={() => addFriend(user?._id)}
-                          >
-                            Add Friend
-                          </button>
-                        </div>
-                      ))}
+                    <div>
+                      {allUsers.length === 0 ? (
+                        <p className="text-gray-400 text-sm sm:text-base">
+                          No new friend suggestion
+                        </p>
+                      ) : (
+                        <>
+                          {allUsers.map((user) => {
+                            const status = buttonStatus[user._id] || "idle";
+                            return (
+                              <div
+                                key={user?._id}
+                                className="flex justify-between items-center border-t py-3 px-1"
+                              >
+                                <span className="font-semibold text-sm sm:text-base">
+                                  {user?.username}
+                                </span>
+                                <button
+                                  className="px-3 py-1 border border-teal-600 text-teal-600 text-xs sm:text-sm rounded-full hover:bg-teal-100 hover:border-teal-100 transition-colors transition-all flex items-center gap-1.5"
+                                  onClick={() => addFriend(user._id)}
+                                  disabled={sending || status === "sent"}
+                                >
+                                  {status === "idle" && (
+                                    <>
+                                      <FaUserFriends />
+                                      Add Friend
+                                    </>
+                                  )}
+                                  {status === "sent" && "✓ Request Sent"}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -617,7 +664,7 @@ export default function Home() {
                         </div>
                         <button
                           onClick={deleteAccount}
-                          className="text-xs text-red-400 text-center border border-red-400 w-full mt-5 py-1 rounded-full hover:bg-red-100 hover:border-red-100"
+                          className="text-xs text-red-400 text-center border border-red-400 w-full mt-5 py-1 rounded-full hover:bg-red-100 hover:border-red-100 focus:outline-red-300 transition-colors transition-all"
                         >
                           Delete Account
                         </button>
