@@ -94,7 +94,7 @@ export default function Signup() {
           </div>
         </div>
       ) : (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-100 via-cyan-100 to-white py-12 px-3 sm:px-6 lg:px-8">
+        <div className="h-screen flex items-center justify-center bg-gradient-to-br from-teal-100 via-cyan-100 to-white px-3 sm:px-6 lg:px-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
