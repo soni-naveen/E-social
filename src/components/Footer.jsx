@@ -35,7 +35,7 @@ export default function Footer() {
                 <li>
                   <a
                     target="_blank"
-                    href="https://naveensoni.vercel.app"
+                    href="https://naveensoni.vercel.app/about"
                     className="text-gray-500 hover:text-black hover:underline"
                   >
                     About
@@ -110,7 +110,10 @@ export default function Footer() {
         {/* Bottom Row: Copyright */}
         <div className="text-xs mt-8 border-t border-gray-400 pt-4 text-center text-gray-500">
           <p>
-            &copy; {new Date().getFullYear()} E-Social. All rights reserved.
+            &copy; {new Date().getFullYear()} E-Social ● Developed by{" "}
+            <a target="_blank" className="underline text-teal-500" href="https://naveensoni.vercel.app">
+              Naveen Soni
+            </a>
           </p>
         </div>
       </div>

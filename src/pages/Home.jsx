@@ -191,10 +191,18 @@ export default function Home() {
 
   // Delete Post with Confirmation
   const confirmDeletePost = (postId) => {
-    const isConfirmed = window.confirm(
-      "Are you sure you want to delete this post?"
-    );
-    if (isConfirmed) {
+    const confirmDelete = Swal.fire({
+      title: "Delete this Post?",
+      text: "Are you sure you want to delete this post?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Confirm",
+      focusCancel: true, // Set the default focus to Cancel button
+    });
+
+    if (confirmDelete.isConfirmed) {
       deletePost(postId);
     }
   };
@@ -287,7 +295,7 @@ export default function Home() {
     try {
       const confirmDelete = await Swal.fire({
         title: "Are You Sure?",
-        text: "DELETE your account is a permanent action.",
+        text: "⚠️This action is irreversible. All your posts, friends, and account data will be permanently removed.",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#d33",
@@ -582,7 +590,9 @@ export default function Home() {
                           className="p-2 bg-white rounded-md shadow transition-shadow hover:cursor-pointer flex items-center gap-2"
                         >
                           <RxHamburgerMenu className="text-lg sm:text-xl" />
-                          <span className="hidden xs:inline text-sm sm:text-base">My Profile</span>
+                          <span className="hidden xs:inline text-sm sm:text-base">
+                            My Profile
+                          </span>
                         </div>
                       </div>
                     </div>
