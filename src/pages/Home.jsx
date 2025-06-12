@@ -38,6 +38,19 @@ export default function Home() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const feedtype = urlParams.get("type");
+  const [feed, setFeed] = useState(`${feedtype}`);
+
+  const handleTabClick = (tab) => {
+    setFeed(tab);
+    navigate(`/feed?type=${tab}`);
+  };
+
+  useEffect(() => {
+    setFeed(feedtype);
+  }, [feedtype]);
+
   useEffect(() => {
     if (!token) {
       navigate("/login");
@@ -353,14 +366,6 @@ export default function Home() {
     };
   }, [openMenuPostId]);
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const feedtype = urlParams.get("type");
-  const [feed, setFeed] = useState(`${feedtype}`);
-
-  const handleTabClick = (tab) => {
-    setFeed(tab);
-    navigate(`/feed?type=${tab}`);
-  };
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

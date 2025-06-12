@@ -32,6 +32,7 @@ export default function Navbar({ username, fetchPost }) {
       });
       if (response.ok) {
         setPostContent("");
+        navigate("/feed?type=mypost");
       } else {
         throw new Error("Failed to create post!");
       }
