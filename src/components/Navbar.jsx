@@ -40,7 +40,7 @@ export default function Navbar({ username, fetchPost }) {
     }
   };
 
-  const handlePostSubmit = (e) => {
+  const handlePostSubmit = async (e) => {
     e.preventDefault();
     if (postContent.trim() === "") {
       alert("Please write something to post!");
@@ -48,7 +48,7 @@ export default function Navbar({ username, fetchPost }) {
     }
     addPost(postContent);
     setIsModalOpen(false);
-    fetchPost();
+    await fetchPost();
   };
 
   return (

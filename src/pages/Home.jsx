@@ -190,8 +190,8 @@ export default function Home() {
   };
 
   // Delete Post with Confirmation
-  const confirmDeletePost = (postId) => {
-    const confirmDelete = Swal.fire({
+  const confirmDeletePost = async (postId) => {
+    const confirmDelete = await Swal.fire({
       title: "Delete this Post?",
       text: "Are you sure you want to delete this post?",
       icon: "warning",
@@ -203,29 +203,24 @@ export default function Home() {
     });
 
     if (confirmDelete.isConfirmed) {
-      deletePost(postId);
-    }
-  };
-
-  // Delete Post
-  const deletePost = async (postId) => {
-    try {
-      const response = await fetch(`${ENDPOINT}/post/${postId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        setPosts((prevPosts) =>
-          prevPosts.filter((post) => post._id !== postId)
-        );
-        // fetchPosts();
-      } else {
-        throw new Error("Failed to delete post");
+      try {
+        const response = await fetch(`${ENDPOINT}/post/${postId}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          setPosts((prevPosts) =>
+            prevPosts.filter((post) => post._id !== postId)
+          );
+          // fetchPosts();
+        } else {
+          throw new Error("Failed to delete post");
+        }
+      } catch (error) {
+        console.error("Error deleting post:", error);
       }
-    } catch (error) {
-      console.error("Error deleting post:", error);
     }
   };
 
