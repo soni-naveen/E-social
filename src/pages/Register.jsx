@@ -105,12 +105,12 @@ export default function Signup() {
               className="max-w-md w-full space-y-8 p-8 sm:p-10 backdrop-blur-md shadow-lg bg-slate-100/80 rounded-lg"
             >
               {successMessage ? (
-                <p className="text-green-500 text-xl sm:text-2xl grid place-items-center font-semibold h-[200px]">
+                <div className="text-green-500 text-xl sm:text-2xl grid place-items-center font-semibold h-[200px]">
                   <div className="flex items-center gap-2">
                     <IoIosCheckmarkCircleOutline size={30} />{" "}
                     <span>Signup Successful!</span>
                   </div>
-                </p>
+                </div>
               ) : (
                 <>
                   <div className="pl-1 text-2xl sm:text-3xl text-teal-600">
@@ -175,9 +175,9 @@ export default function Signup() {
                       </div>
                     </div>
                     {error && (
-                      <p className="text-red-500 text-xs sm:text-sm mt-2">
+                      <div className="text-red-500 text-xs sm:text-sm mt-2">
                         {error}
-                      </p>
+                      </div>
                     )}
                     <div>
                       <button
