@@ -48,7 +48,10 @@ export default function Home() {
   };
 
   useEffect(() => {
-    setFeed(feedtype);
+    (async function () {
+      setFeed(feedtype);
+      await fetchPosts();
+    })();
   }, [feedtype]);
 
   useEffect(() => {
