@@ -383,7 +383,7 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            <>
+            <main className="max-w-[1800px] mx-auto relative">
               <Navbar username={user?.username} fetchPost={fetchPosts} />
               <div
                 onClick={() => setSidebarOpen(true)}
@@ -845,7 +845,7 @@ export default function Home() {
                 </div>
               </main>
               <Footer />
-            </>
+            </main>
           )}
         </div>
       ) : null}
