@@ -1,16 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { convertCreatedAt } from "../utils/dateConverter";
 import { MdDelete } from "react-icons/md";
 import { FiMoreVertical } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaFacebook,
-  FaTwitter,
-  FaInstagram,
-  FaLinkedin,
-  FaUserFriends,
-} from "react-icons/fa";
+import { FaUserFriends } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
 import { RxHamburgerMenu } from "react-icons/rx";
 import Loader from "../components/Loader";
@@ -18,14 +12,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import Swal from "sweetalert2";
 
-const Date = ({ createdAt }) => {
-  const formattedTime = convertCreatedAt(createdAt);
-  return (
-    <>
-      <div>{formattedTime}</div>
-    </>
-  );
-};
+const Date = ({ createdAt }) => <div>{convertCreatedAt(createdAt)}</div>;
 
 export default function Home() {
   const ENDPOINT = import.meta.env.VITE_REACT_BASE_URL;
@@ -35,6 +22,12 @@ export default function Home() {
   const [commentContent, setCommentContent] = useState({});
   const [friendRequests, setFriendRequests] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
+  const [buttonStatus, setButtonStatus] = useState({});
+  const [sending, setSending] = useState(false);
+  const [expandedComments, setExpandedComments] = useState({});
+  const [openMenuPostId, setOpenMenuPostId] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -42,43 +35,33 @@ export default function Home() {
   const feedtype = urlParams.get("type");
   const [feed, setFeed] = useState(`${feedtype}`);
 
-  const handleTabClick = (tab) => {
-    setFeed(tab);
-    navigate(`/feed?type=${tab}`);
-  };
+  // Memoize filtered posts to avoid recalculating on every render
+  const filteredPosts = useMemo(() => {
+    if (!user) return [];
+    return posts.filter((post) =>
+      feed === "mypost"
+        ? post.author._id === user._id
+        : post.author._id !== user._id
+    );
+  }, [posts, feed, user]);
 
-  useEffect(() => {
-    (async function () {
-      setFeed(feedtype);
-      await fetchPosts();
-    })();
-  }, [feedtype]);
+  // Memoize user's post count
+  const userPostCount = useMemo(() => {
+    if (!user) return 0;
+    return posts.filter((post) => post.author._id === user._id).length;
+  }, [posts, user]);
 
-  useEffect(() => {
-    if (!token) {
-      navigate("/login");
-    } else {
-      const fetchData = async () => {
-        try {
-          await fetchUser();
-          await fetchPosts();
-        } catch (error) {
-          console.error("Error fetching data:", error);
-        }
-      };
-      fetchData();
-    }
-  }, [token, navigate]);
+  // Memoize tab click handler
+  const handleTabClick = useCallback(
+    (tab) => {
+      setFeed(tab);
+      navigate(`/feed?type=${tab}`);
+    },
+    [navigate]
+  );
 
-  useEffect(() => {
-    const allUsers = async () => {
-      await fetchAllUsers();
-    };
-    allUsers();
-  }, []);
-
-  // Get User Details
-  const fetchUser = async () => {
+  // Memoize fetch functions with useCallback
+  const fetchUser = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`${ENDPOINT}/auth/getuserdetails`, {
@@ -100,10 +83,9 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [ENDPOINT, token]);
 
-  // Get all feed
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     try {
       const response = await fetch(`${ENDPOINT}/post/feed`, {
         headers: {
@@ -119,10 +101,9 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching posts:", error);
     }
-  };
+  }, [ENDPOINT, token]);
 
-  // Get all friend requests
-  const fetchFriendRequests = async () => {
+  const fetchFriendRequests = useCallback(async () => {
     try {
       const response = await fetch(`${ENDPOINT}/friend-request/requests`, {
         headers: {
@@ -138,74 +119,98 @@ export default function Home() {
     } catch (error) {
       console.error("Error fetching friend requests:", error);
     }
-  };
+  }, [ENDPOINT, token]);
 
-  // Handle friend request
-  const handleFriendRequest = async (requestId, status) => {
+  const fetchAllUsers = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${ENDPOINT}/friend-request/${requestId}/${status}`,
-        {
+      const response = await fetch(`${ENDPOINT}/auth/allusers`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAllUsers(data);
+      } else {
+        throw new Error("Failed to fetch users");
+      }
+    } catch (error) {
+      console.error("Error fetching all users:", error);
+    }
+  }, [ENDPOINT, token]);
+
+  // Memoize event handlers
+  const handleFriendRequest = useCallback(
+    async (requestId, status) => {
+      try {
+        const response = await fetch(
+          `${ENDPOINT}/friend-request/${requestId}/${status}`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (response.ok) {
+          await fetchFriendRequests();
+          await fetchUser();
+          await fetchAllUsers();
+        } else {
+          throw new Error(`Failed to ${status} friend request`);
+        }
+      } catch (error) {
+        console.error(`Error ${status}ing friend request:`, error);
+      }
+    },
+    [ENDPOINT, token, fetchFriendRequests, fetchUser, fetchAllUsers]
+  );
+
+  const likePost = useCallback(
+    async (postId) => {
+      try {
+        const response = await fetch(`${ENDPOINT}/post/${postId}/likes`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
           },
+        });
+        if (response.ok) {
+          fetchPosts();
+        } else {
+          throw new Error("Failed to like post");
         }
-      );
-      if (response.ok) {
-        await fetchFriendRequests();
-        await fetchUser();
-        await fetchAllUsers();
-      } else {
-        throw new Error(`Failed to ${status} friend request`);
+      } catch (error) {
+        console.error("Error liking post:", error);
       }
-    } catch (error) {
-      console.error(`Error ${status}ing friend request:`, error);
-    }
-  };
+    },
+    [ENDPOINT, token, fetchPosts]
+  );
 
-  // Like Post
-  const likePost = async (postId) => {
-    try {
-      const response = await fetch(`${ENDPOINT}/post/${postId}/likes`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        fetchPosts();
-      } else {
-        throw new Error("Failed to like post");
+  const addComment = useCallback(
+    async (postId) => {
+      try {
+        const response = await fetch(`${ENDPOINT}/post/${postId}/comments`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content: commentContent[postId] }),
+        });
+        if (response.ok) {
+          setCommentContent((prev) => ({ ...prev, [postId]: "" }));
+          fetchPosts();
+        } else {
+          throw new Error("Failed to add comment");
+        }
+      } catch (error) {
+        console.error("Error adding comment:", error);
       }
-    } catch (error) {
-      console.error("Error liking post:", error);
-    }
-  };
+    },
+    [ENDPOINT, token, commentContent, fetchPosts]
+  );
 
-  // Comment on Post
-  const addComment = async (postId) => {
-    try {
-      const response = await fetch(`${ENDPOINT}/post/${postId}/comments`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ content: commentContent[postId] }),
-      });
-      if (response.ok) {
-        setCommentContent((prev) => ({ ...prev, [postId]: "" }));
-        fetchPosts();
-      } else {
-        throw new Error("Failed to add comment");
-      }
-    } catch (error) {
-      console.error("Error adding comment:", error);
-    }
-  };
-
-  // Delete Post with Confirmation
   const confirmDeletePost = async (postId) => {
     const confirmDelete = await Swal.fire({
       title: "Delete this Post?",
@@ -215,7 +220,7 @@ export default function Home() {
       confirmButtonColor: "#d33",
       cancelButtonColor: "#3085d6",
       confirmButtonText: "Confirm",
-      focusCancel: true, // Set the default focus to Cancel button
+      focusCancel: true,
     });
 
     if (confirmDelete.isConfirmed) {
@@ -230,7 +235,6 @@ export default function Home() {
           setPosts((prevPosts) =>
             prevPosts.filter((post) => post._id !== postId)
           );
-          // fetchPosts();
         } else {
           throw new Error("Failed to delete post");
         }
@@ -240,69 +244,46 @@ export default function Home() {
     }
   };
 
-  // Fetch all users
-  const fetchAllUsers = async () => {
-    try {
-      const response = await fetch(`${ENDPOINT}/auth/allusers`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setAllUsers(data);
-        // console.log(allUsers);
-      } else {
-        throw new Error("Failed to fetch users");
-      }
-    } catch (error) {
-      console.error("Error fetching all users:", error);
-    }
-  };
+  const addFriend = useCallback(
+    async (userId) => {
+      if (sending || buttonStatus[userId] === "sent") return;
+      setSending(true);
+      setButtonStatus((prev) => ({ ...prev, [userId]: "sent" }));
 
-  const [buttonStatus, setButtonStatus] = useState({});
-  const [sending, setSending] = useState(false);
-  // Send friend request
-  const addFriend = async (userId) => {
-    if (sending || buttonStatus[userId] === "sent") return;
-    setSending(true);
-    setButtonStatus((prev) => ({ ...prev, [userId]: "sent" }));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      try {
+        const response = await fetch(
+          `${ENDPOINT}/friend-request/sendRequest/${userId}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ userId }),
+          }
+        );
+        if (!response.ok) throw new Error("Failed to send");
 
-    // Wait 1 second before sending request
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    try {
-      const response = await fetch(
-        `${ENDPOINT}/friend-request/sendRequest/${userId}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ userId }),
-        }
-      );
-      if (!response.ok) throw new Error("Failed to send");
-
-      // Wait 1 second, then remove from list
-      setTimeout(() => {
-        setAllUsers((prev) => prev.filter((u) => u._id !== userId));
-        setButtonStatus((prev) => {
-          const newStatus = { ...prev };
-          delete newStatus[userId]; // Clean up
-          return newStatus;
-        });
+        setTimeout(() => {
+          setAllUsers((prev) => prev.filter((u) => u._id !== userId));
+          setButtonStatus((prev) => {
+            const newStatus = { ...prev };
+            delete newStatus[userId];
+            return newStatus;
+          });
+          setSending(false);
+        }, 500);
+      } catch (error) {
+        console.error("Friend request failed:", error);
+        setButtonStatus((prev) => ({ ...prev, [userId]: "idle" }));
         setSending(false);
-      }, 1000);
-    } catch (error) {
-      console.error("Friend request failed:", error);
-      setButtonStatus((prev) => ({ ...prev, [userId]: "idle" }));
-      setSending(false);
-    }
-  };
+      }
+    },
+    [ENDPOINT, token, sending, buttonStatus]
+  );
 
-  // Delete Account
-  const deleteAccount = async () => {
+  const deleteAccount = useCallback(async () => {
     try {
       const confirmDelete = await Swal.fire({
         title: "Are You Sure?",
@@ -312,7 +293,7 @@ export default function Home() {
         confirmButtonColor: "#d33",
         cancelButtonColor: "#3085d6",
         confirmButtonText: "Confirm",
-        focusCancel: true, // Set the default focus to Cancel button
+        focusCancel: true,
       });
 
       if (confirmDelete.isConfirmed) {
@@ -337,24 +318,59 @@ export default function Home() {
     } catch (error) {
       console.log("ERROR MESSAGE - ", error.message);
     }
-  };
+  }, [ENDPOINT, token]);
 
-  // Expand Comments
-  const [expandedComments, setExpandedComments] = useState({});
-  const toggleComments = (postId) => {
+  const toggleComments = useCallback((postId) => {
     setExpandedComments((prev) => ({
       ...prev,
       [postId]: !prev[postId],
     }));
-  };
+  }, []);
 
-  // Delete Post Menu
-  const [openMenuPostId, setOpenMenuPostId] = useState(false);
-  const toggleMenu = (post) => {
-    setOpenMenuPostId(openMenuPostId === post._id ? null : post._id);
-  };
+  const toggleMenu = useCallback(
+    (post) => {
+      setOpenMenuPostId(openMenuPostId === post._id ? null : post._id);
+    },
+    [openMenuPostId]
+  );
+
+  const setSidebarOpenCallback = useCallback((value) => {
+    setSidebarOpen(value);
+  }, []);
 
   const menuRefs = useRef({});
+
+  // Effects with proper dependencies
+  useEffect(() => {
+    (async function () {
+      setFeed(feedtype);
+      await fetchPosts();
+    })();
+  }, [feedtype, fetchPosts]);
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+    } else {
+      const fetchData = async () => {
+        try {
+          await fetchUser();
+          await fetchPosts();
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      };
+      fetchData();
+    }
+  }, [token, navigate, fetchUser, fetchPosts]);
+
+  useEffect(() => {
+    const allUsers = async () => {
+      await fetchAllUsers();
+    };
+    allUsers();
+  }, [fetchAllUsers]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       const openMenuRef = menuRefs.current[openMenuPostId];
@@ -368,8 +384,6 @@ export default function Home() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [openMenuPostId]);
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <>
@@ -386,7 +400,7 @@ export default function Home() {
             <main className="max-w-[1800px] mx-auto relative">
               <Navbar username={user?.username} fetchPost={fetchPosts} />
               <div
-                onClick={() => setSidebarOpen(true)}
+                onClick={() => setSidebarOpenCallback(true)}
                 className="hidden lg:flex lg:absolute top-[88px] right-6 sm:right-5 p-2 lg:w-[350px] bg-white rounded-md shadow transition-shadow hover:cursor-pointer items-center gap-3"
               >
                 <RxHamburgerMenu className="text-lg sm:text-xl" />
@@ -402,7 +416,7 @@ export default function Home() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
                     className="fixed inset-0 bg-black bg-opacity-50 z-40"
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={() => setSidebarOpenCallback(false)}
                   />
                 )}
               </AnimatePresence>
@@ -417,7 +431,7 @@ export default function Home() {
                   >
                     {/* Close button */}
                     <button
-                      onClick={() => setSidebarOpen(false)}
+                      onClick={() => setSidebarOpenCallback(false)}
                       className="absolute top-2 sm:top-4 left-2 p-2 text-gray-500 hover:text-gray-700"
                     >
                       <svg
@@ -459,11 +473,7 @@ export default function Home() {
                               <div>
                                 <p className="text-teal-700">Posts</p>
                                 <p className="font-bold text-center">
-                                  {
-                                    posts.filter(
-                                      (post) => post.author._id === user._id
-                                    ).length
-                                  }
+                                  {userPostCount}
                                 </p>
                               </div>
                             </div>
@@ -589,7 +599,7 @@ export default function Home() {
                       </div>
                       <div className="lg:hidden">
                         <div
-                          onClick={() => setSidebarOpen(true)}
+                          onClick={() => setSidebarOpenCallback(true)}
                           className="p-2 bg-white rounded-md shadow transition-shadow hover:cursor-pointer flex items-center gap-2"
                         >
                           <RxHamburgerMenu className="text-lg sm:text-xl" />
@@ -601,200 +611,188 @@ export default function Home() {
                     </div>
 
                     {/* All Posts  */}
-                    {posts.filter((post) =>
-                      feed === "mypost" ? post.author._id === user._id : true
-                    ).length === 0 ? (
+                    {filteredPosts.length === 0 ? (
                       <div className="text-gray-400 text-sm sm:text-base py-5 px-2">
                         {feed === "mypost"
                           ? "You haven't posted anything yet. Start posting now!"
-                          : "Start adding friends to see what they’re sharing!"}
+                          : "Start adding friends to see what they're sharing!"}
                       </div>
                     ) : (
                       <>
-                        {posts
-                          .filter((post) =>
-                            feed === "mypost"
-                              ? post.author._id === user._id
-                              : post.author._id !== user._id
-                          )
-                          .map((post) => (
-                            <div
-                              key={post?._id}
-                              className="bg-white rounded-lg shadow border mb-6 p-6 relative"
-                            >
-                              {/* Post Content  */}
-                              <div className="flex items-center mb-4">
-                                <div>
-                                  <h3 className="font-semibold">
-                                    {post?.author?.username}
-                                  </h3>
-                                  <div className="text-gray-500 text-xs">
-                                    <Date createdAt={post?.createdAt} />
-                                  </div>
+                        {filteredPosts.map((post) => (
+                          <div
+                            key={post?._id}
+                            className="bg-white rounded-lg shadow border mb-6 p-6 relative"
+                          >
+                            {/* Post Content  */}
+                            <div className="flex items-center mb-4">
+                              <div>
+                                <h3 className="font-semibold">
+                                  {post?.author?.username}
+                                </h3>
+                                <div className="text-gray-500 text-xs">
+                                  <Date createdAt={post?.createdAt} />
                                 </div>
                               </div>
-                              <p className="mb-4 text-sm sm:text-base">
-                                {post?.content}
-                              </p>
+                            </div>
+                            <p className="mb-4 text-sm sm:text-base">
+                              {post?.content}
+                            </p>
 
-                              {/* Like, Comment and Delete post */}
-                              <div className="flex items-center text-gray-500 text-sm">
-                                {/* Like Button  */}
-                                <button
-                                  className="flex items-center mr-6 hover:text-red-600"
-                                  onClick={() => likePost(post?._id)}
+                            {/* Like, Comment and Delete post */}
+                            <div className="flex items-center text-gray-500 text-sm">
+                              {/* Like Button  */}
+                              <button
+                                className="flex items-center mr-6 hover:text-red-600"
+                                onClick={() => likePost(post?._id)}
+                              >
+                                <svg
+                                  className="w-5 h-5 mr-1"
+                                  fill={
+                                    post.likes.includes(user?._id)
+                                      ? "red"
+                                      : "none"
+                                  }
+                                  stroke={
+                                    post.likes.includes(user?._id)
+                                      ? "red"
+                                      : "currentColor"
+                                  }
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
                                 >
-                                  <svg
-                                    className="w-5 h-5 mr-1"
-                                    fill={
-                                      post.likes.includes(user?._id)
-                                        ? "red"
-                                        : "none"
-                                    }
-                                    stroke={
-                                      post.likes.includes(user?._id)
-                                        ? "red"
-                                        : "currentColor"
-                                    }
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                                    />
-                                  </svg>
-                                  <div
-                                    className={
-                                      post.likes.includes(user?._id)
-                                        ? "font-semibold text-red-500"
-                                        : "font-normal"
-                                    }
-                                  >
-                                    {post?.likes?.length}{" "}
-                                    {post?.likes?.length === 1
-                                      ? "like"
-                                      : "likes"}
-                                  </div>
-                                </button>
-                                {/* Comment Button  */}
-                                <button
-                                  className="flex items-center hover:text-teal-600"
-                                  onClick={() => toggleComments(post?._id)}
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                                  />
+                                </svg>
+                                <div
+                                  className={
+                                    post.likes.includes(user?._id)
+                                      ? "font-semibold text-red-500"
+                                      : "font-normal"
+                                  }
                                 >
-                                  <svg
-                                    className="w-5 h-5 mr-1"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                                    />
-                                  </svg>
-                                  {post?.comments?.length}{" "}
-                                  {post?.comments?.length === 1
-                                    ? "comment"
-                                    : "comments"}
-                                </button>
-                              </div>
+                                  {post?.likes?.length}{" "}
+                                  {post?.likes?.length === 1 ? "like" : "likes"}
+                                </div>
+                              </button>
+                              {/* Comment Button  */}
+                              <button
+                                className="flex items-center hover:text-teal-600"
+                                onClick={() => toggleComments(post?._id)}
+                              >
+                                <svg
+                                  className="w-5 h-5 mr-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                                  />
+                                </svg>
+                                {post?.comments?.length}{" "}
+                                {post?.comments?.length === 1
+                                  ? "comment"
+                                  : "comments"}
+                              </button>
+                            </div>
 
-                              {/* Delete Button */}
-                              <div className="absolute top-3 right-3">
-                                {user?._id === post?.author?._id && (
-                                  <div
-                                    className="relative"
-                                    ref={(el) =>
-                                      (menuRefs.current[post._id] = el)
-                                    }
-                                  >
-                                    <button onClick={() => toggleMenu(post)}>
-                                      <FiMoreVertical size={20} />
-                                    </button>
+                            {/* Delete Button */}
+                            <div className="absolute top-3 right-3">
+                              {user?._id === post?.author?._id && (
+                                <div
+                                  className="relative"
+                                  ref={(el) =>
+                                    (menuRefs.current[post._id] = el)
+                                  }
+                                >
+                                  <button onClick={() => toggleMenu(post)}>
+                                    <FiMoreVertical size={20} />
+                                  </button>
 
-                                    {/* Dropdown menu */}
-                                    {openMenuPostId === post._id && (
-                                      <div className="absolute top-3 right-2 mt-2 bg-white border rounded shadow-md z-10">
-                                        <button
-                                          onClick={() =>
-                                            confirmDeletePost(post._id)
-                                          }
-                                          className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 w-full text-sm focus:outline-red-300"
-                                        >
-                                          <MdDelete className="mr-1 mt-0.5" />
-                                          Delete
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Expand comments  */}
-                              <AnimatePresence>
-                                {expandedComments[post?._id] && (
-                                  <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    transition={{
-                                      duration: 0.3,
-                                      ease: "easeInOut",
-                                    }}
-                                    className="mt-4"
-                                  >
-                                    <h4 className="font-semibold text-xs sm:text-sm text-teal-600">
-                                      Comments
-                                    </h4>
-                                    {post?.comments?.map((comment) => (
-                                      <div
-                                        key={comment?._id}
-                                        className="my-2 p-2 bg-gray-100 rounded"
-                                      >
-                                        <p className="text-[14px] sm:text-sm">
-                                          <span className="font-medium">
-                                            {comment?.author?.username}:
-                                          </span>{" "}
-                                          {comment?.content}
-                                        </p>
-                                        <small className="text-gray-500 text-[10px]">
-                                          <Date
-                                            createdAt={comment?.createdAt}
-                                          />
-                                        </small>
-                                      </div>
-                                    ))}
-                                    <div className="mt-2 flex flex-col">
-                                      <textarea
-                                        className="w-full p-2 border text-[14px] sm:text-sm rounded resize-none outline-gray-300"
-                                        placeholder="Add a comment..."
-                                        rows={3}
-                                        value={commentContent[post?._id] || ""}
-                                        onChange={(e) =>
-                                          setCommentContent((prev) => ({
-                                            ...prev,
-                                            [post?._id]: e.target.value,
-                                          }))
-                                        }
-                                      />
+                                  {/* Dropdown menu */}
+                                  {openMenuPostId === post._id && (
+                                    <div className="absolute top-3 right-2 mt-2 bg-white border rounded shadow-md z-10">
                                       <button
-                                        className="mt-2 px-4 py-2 bg-slate-200 text-black rounded text-xs hover:bg-slate-300 w-fit self-end"
-                                        onClick={() => addComment(post?._id)}
+                                        onClick={() =>
+                                          confirmDeletePost(post._id)
+                                        }
+                                        className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 w-full text-sm focus:outline-red-300"
                                       >
-                                        Post Comment
+                                        <MdDelete className="mr-1 mt-0.5" />
+                                        Delete
                                       </button>
                                     </div>
-                                  </motion.div>
-                                )}
-                              </AnimatePresence>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                          ))}
+
+                            {/* Expand comments  */}
+                            <AnimatePresence>
+                              {expandedComments[post?._id] && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: "auto" }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  transition={{
+                                    duration: 0.3,
+                                    ease: "easeInOut",
+                                  }}
+                                  className="mt-4"
+                                >
+                                  <h4 className="font-semibold text-xs sm:text-sm text-teal-600">
+                                    Comments
+                                  </h4>
+                                  {post?.comments?.map((comment) => (
+                                    <div
+                                      key={comment?._id}
+                                      className="my-2 p-2 bg-gray-100 rounded"
+                                    >
+                                      <p className="text-[14px] sm:text-sm">
+                                        <span className="font-medium">
+                                          {comment?.author?.username}:
+                                        </span>{" "}
+                                        {comment?.content}
+                                      </p>
+                                      <small className="text-gray-500 text-[10px]">
+                                        <Date createdAt={comment?.createdAt} />
+                                      </small>
+                                    </div>
+                                  ))}
+                                  <div className="mt-2 flex flex-col">
+                                    <textarea
+                                      className="w-full p-2 border text-[14px] sm:text-sm rounded resize-none outline-gray-300"
+                                      placeholder="Add a comment..."
+                                      rows={3}
+                                      value={commentContent[post?._id] || ""}
+                                      onChange={(e) =>
+                                        setCommentContent((prev) => ({
+                                          ...prev,
+                                          [post?._id]: e.target.value,
+                                        }))
+                                      }
+                                    />
+                                    <button
+                                      className="mt-2 px-4 py-2 bg-slate-200 text-black rounded text-xs hover:bg-slate-300 w-fit self-end"
+                                      onClick={() => addComment(post?._id)}
+                                    >
+                                      Post Comment
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        ))}
                       </>
                     )}
                   </div>

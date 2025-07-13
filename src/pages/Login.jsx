@@ -136,7 +136,7 @@ export default function Login() {
               <div className="text-gray-500 text-xs sm:text-sm">
                 Don’t have an account?{" "}
                 <Link to="/register" className="underline text-blue-600">
-                  Create now
+                  Create New
                 </Link>
               </div>
             </motion.div>
