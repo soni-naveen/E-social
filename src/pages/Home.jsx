@@ -427,7 +427,7 @@ export default function Home() {
                     animate={{ x: 0 }}
                     exit={{ x: "100%" }}
                     transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="fixed right-0 top-0 h-full w-[300px] sm:w-[350px] md:w-[400px] bg-white z-50 shadow-2xl overflow-y-auto"
+                    className="absolute right-0 top-0 h-full w-[300px] sm:w-[350px] md:w-[400px] bg-white z-50 shadow-2xl overflow-y-auto"
                   >
                     {/* Close button */}
                     <button
