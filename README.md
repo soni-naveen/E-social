@@ -1,9 +1,8 @@
-# E-social by Naveen Soni
+# E-Social
 
-## Social Network Webapp
+Try it here : [e-social.vercel.app](https://e-social.vercel.app/)
 
-Welcome to my E-Social project!
-
+---
 ## Features
 
 ### User Registration & Authentication
